@@ -1414,7 +1414,7 @@ class AppContext {
         const delBtn = e.target.closest('[data-action="delete"]');
         if (delBtn) { await this.handleDeleteUser(parseInt(delBtn.dataset.id)); return; }
 
-        const btn = e.target.closest('.admin-user-act');
+        const btn = e.target.closest('.admin-user-act, .tbl-btn');
         if (!btn) return;
 
         const uid = btn.dataset.id;

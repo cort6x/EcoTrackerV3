@@ -792,7 +792,7 @@
 </footer>
 
 <script>
-var LP_API = window.location.protocol + '//' + window.location.hostname + ':3000/api';
+var LP_API = window.location.origin + '/api/';
 
 // ─── Modal ───────────────────────────────────────────────────
 var modal = document.getElementById('auth-modal');
@@ -932,7 +932,7 @@ document.getElementById('modal-register-form').addEventListener('submit', async 
   var token = localStorage.getItem('authToken');
   if (!token) return;
 
-  var LP_API_BASE = window.location.protocol + '//' + window.location.hostname + ':3000/api';
+  var LP_API_BASE = window.location.origin + '/api/';
 
   function showAuthNav(username) {
     // Десктоп шапка

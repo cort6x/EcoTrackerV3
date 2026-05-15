@@ -1429,7 +1429,12 @@ class AppContext {
 
         if (res && res.ok) {
             this.showMessage(res.data.message, 'success');
-            this.elements.adminUserSearchForm.dispatchEvent(new Event('submit'));
+            const q = document.getElementById('user-search-query')?.value?.trim();
+            if (q && q.length >= 2) {
+                this.elements.adminUserSearchForm.dispatchEvent(new Event('submit'));
+            } else {
+                this.loadAllUsers();
+            }
         } else {
             this.showMessage(res?.data?.message || 'Ошибка', 'error');
             btn.disabled = false;

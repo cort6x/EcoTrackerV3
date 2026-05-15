@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoTracker — Считай свой вклад в природу</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="main.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🌿</text></svg>">
+  <style>
+    /* ══ Шапка лендинга ══ */
+    #lp-header {
+      position: sticky; top: 0; z-index: 100;
+      width: 100%;
+      background: rgba(237,250,243,0.82);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-bottom: 1px solid rgba(134,239,172,0.30);
+      box-shadow: 0 1px 12px rgba(15,36,22,0.06);
+    }
+    .lp-header-inner {
+      max-width: 1100px; margin: 0 auto;
+      padding: 0 1.5rem; height: 64px;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .lp-nav-links { display: flex; align-items: center; gap: 0.25rem; margin-left: 1.5rem; }
+    .lp-nav-link {
+      padding: 0.4rem 0.8rem; border-radius: var(--radius-md);
+      font-size: 0.875rem; font-weight: 500; color: var(--c-text-muted);
+      text-decoration: none; transition: all var(--dur) var(--ease);
+    }
+    .lp-nav-link:hover { background: rgba(34,197,94,0.10); color: var(--c-green-7); }
+    .lp-nav-btns { display: flex; align-items: center; gap: 0.625rem; margin-left: auto; }
+    .lp-btn-ghost {
+      font-family: var(--font-body); font-size: 0.875rem; font-weight: 600;
+      padding: 0.4rem 1rem; border-radius: var(--radius-full);
+      color: var(--c-green-7); background: rgba(34,197,94,0.08);
+      border: 1px solid rgba(34,197,94,0.22); cursor: pointer;
+      transition: all var(--dur) var(--ease);
+    }
+    .lp-btn-ghost:hover { background: rgba(34,197,94,0.16); }
+    .lp-btn-primary {
+      font-family: var(--font-body); font-size: 0.875rem; font-weight: 700;
+      padding: 0.45rem 1.125rem; border-radius: var(--radius-full);
+      color: #fff; background: linear-gradient(135deg,var(--c-green-5),var(--c-teal-5));
+      border: none; cursor: pointer;
+      box-shadow: 0 3px 12px rgba(22,163,74,0.30);
+      transition: all var(--dur) var(--ease);
+    }
+    .lp-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(22,163,74,0.40); }
+
+    /* ══ Модальное окно auth ══ */
+    #auth-modal {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(15,36,22,0.38);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    #auth-modal.hidden { display: none !important; }
+    .auth-modal-card {
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255,255,255,0.96);
+      border-radius: var(--radius-xl); padding: 2.25rem 2rem;
+      width: 100%; max-width: 400px;
+      box-shadow: var(--shadow-lg); position: relative;
+      animation: fadeUp 0.35s var(--ease) both;
+    }
+    .auth-modal-close {
+      position: absolute; top: 0.875rem; right: 0.875rem;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(0,0,0,0.06); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--c-text-muted); transition: all var(--dur) var(--ease);
+    }
+    .auth-modal-close:hover { background: rgba(0,0,0,0.12); }
+    .auth-modal-logo-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.75rem; }
+    .auth-modal-logo-circle {
+      width: 58px; height: 58px;
+      background: linear-gradient(135deg,rgba(34,197,94,0.15),rgba(20,184,166,0.15));
+      border: 1px solid rgba(34,197,94,0.22); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 0.875rem;
+    }
+    .auth-modal-title-h2 {
+      font-family: var(--font-display); font-size: 1.65rem;
+      color: var(--c-green-8); text-align: center; font-style: italic; line-height: 1.2;
+    }
+    .auth-modal-sub { font-size: 0.8125rem; color: var(--c-text-muted); text-align: center; margin-top: 0.2rem; }
+    .auth-modal-form { display: flex; flex-direction: column; gap: 1rem; }
+    .auth-modal-err {
+      background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.22);
+      border-radius: var(--radius-md); padding: 0.6rem 0.875rem;
+      font-size: 0.8125rem; color: #dc2626; font-weight: 500; margin-bottom: 0.5rem; text-align: center;
+    }
+    .auth-modal-success { text-align: center; padding: 1rem 0; }
+    .auth-modal-success-icon {
+      width: 54px; height: 54px; border-radius: 50%; margin: 0 auto 0.875rem;
+      background: linear-gradient(135deg,var(--c-green-4),var(--c-teal-5));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: #fff; animation: fadeUp 0.4s var(--ease) both;
+    }
+    .btn-spinner {
+      width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin .6s linear infinite; display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ══ Секции лендинга ══ */
+    #lp-main { position: relative; z-index: 1; }
+    .lp-section { padding: clamp(4rem,8vw,7rem) clamp(1.25rem,4vw,2.5rem); }
+    .lp-container { max-width: 1100px; margin: 0 auto; }
+    .lp-section-label {
+      display: inline-block; padding: 0.25rem 0.8rem;
+      background: rgba(34,197,94,0.10); border: 1px solid rgba(34,197,94,0.22);
+      border-radius: var(--radius-full);
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--c-green-7); margin-bottom: 0.875rem;
+    }
+    .lp-h2 {
+      font-family: var(--font-display); font-size: clamp(1.8rem,.8rem+3vw,2.8rem);
+      font-weight: 400; color: var(--c-green-9); letter-spacing: -0.02em;
+      font-style: italic; margin-bottom: 2.5rem; line-height: 1.2; max-width: 600px;
+    }
+    .lp-alt-bg {
+      background: rgba(255,255,255,0.32);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      border-top: 1px solid rgba(134,239,172,0.15);
+      border-bottom: 1px solid rgba(134,239,172,0.15);
+    }
+
+    /* ══ Hero ══ */
+    #lp-hero {
+      min-height: calc(100vh - 64px);
+      display: flex; align-items: center;
+      padding: clamp(3.5rem,7vw,6rem) clamp(1.25rem,4vw,2.5rem);
+    }
+    .hero-layout { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 3.5rem; width: 100%; }
+    .hero-content { flex: 1; min-width: 0; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.3rem 0.875rem; border-radius: var(--radius-full);
+      background: rgba(255,255,255,0.70); border: 1px solid rgba(34,197,94,0.22);
+      font-size: 0.78125rem; font-weight: 600; color: var(--c-green-7);
+      margin-bottom: 1.25rem; backdrop-filter: blur(8px);
+    }
+    .hero-pulse {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--c-green-5);
+      flex-shrink: 0; animation: pulseDot 2s ease-in-out infinite;
+    }
+    @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)} }
+    .hero-h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem,.5rem+5vw,3.75rem);
+      font-weight: 400; color: var(--c-green-9);
+      letter-spacing: -0.025em; font-style: italic; line-height: 1.15; margin-bottom: 1.125rem;
+    }
+    .hero-sub { font-size: 1.0625rem; color: var(--c-text-muted); line-height: 1.7; margin-bottom: 2rem; max-width: 480px; }
+    .hero-btns { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2.25rem; }
+    .lp-btn-outline {
+      font-family: var(--font-body); font-size: 0.9375rem; font-weight: 600;
+      padding: 0.65rem 1.5rem; border-radius: var(--radius-full);
+      color: var(--c-green-7); background: rgba(255,255,255,0.60);
+      border: 1.5px solid rgba(34,197,94,0.25); cursor: pointer;
+      backdrop-filter: blur(8px); transition: all var(--dur) var(--ease);
+      text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .lp-btn-outline:hover { background: rgba(255,255,255,0.85); border-color: var(--c-green-5); }
+    .lp-btn-lg { padding: 0.75rem 1.75rem !important; font-size: 1rem !important; }
+    .hero-stats { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+    .hs-item { display: flex; flex-direction: column; }
+    .hs-val { font-family: var(--font-display); font-size: 1.15rem; color: var(--c-green-7); font-style: italic; }
+    .hs-lbl { font-size: 0.75rem; color: var(--c-text-muted); }
+    .hs-sep { width: 1px; height: 28px; background: rgba(34,197,94,0.22); }
+
+    /* Hero visual card */
+    .hero-visual { flex-shrink: 0; width: 320px; position: relative; }
+    .hero-card {
+      background: var(--c-surface);
+      backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--c-border); border-radius: var(--radius-xl);
+      padding: 1.5rem; box-shadow: var(--shadow-lg);
+      animation: blobDrift 4s ease-in-out infinite alternate;
+    }
+    .hc-header { display: flex; align-items: center; gap: 0.625rem; margin-bottom: 1rem; }
+    .hc-icon {
+      width: 32px; height: 32px; border-radius: var(--radius-md);
+      background: linear-gradient(135deg,rgba(34,197,94,0.15),rgba(20,184,166,0.12));
+      border: 1px solid rgba(34,197,94,0.18);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hc-title { font-size: 0.8125rem; font-weight: 600; color: var(--c-text-muted); }
+    .hc-big { display: flex; align-items: baseline; gap: 0.35rem; margin-bottom: 0.15rem; }
+    .hc-num { font-family: var(--font-display); font-size: 2rem; font-style: italic; color: var(--c-green-7); line-height: 1; }
+    .hc-unit { font-size: 0.75rem; font-weight: 600; color: var(--c-text-muted); }
+    .hc-note { font-size: 0.75rem; color: var(--c-text-muted); margin-bottom: 1rem; }
+    .hc-bars { display: flex; flex-direction: column; gap: 0.5rem; }
+    .hc-bar-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.71875rem; color: var(--c-text-muted); }
+    .hc-bar-row span:first-child { width: 95px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hc-bar-row span:last-child { width: 28px; text-align: right; font-weight: 700; color: var(--c-green-6); }
+    .hc-bar-bg { flex: 1; height: 6px; background: rgba(34,197,94,0.10); border-radius: 3px; overflow: hidden; }
+    .hc-bar-fill { height: 100%; border-radius: 3px; }
+    .hero-pill {
+      position: absolute;
+      background: var(--c-surface); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--c-border); border-radius: var(--radius-full);
+      padding: 0.4rem 0.875rem; font-size: 0.75rem; font-weight: 600;
+      box-shadow: var(--shadow-sm); white-space: nowrap;
+    }
+    .hp-1 { bottom: -24px; left: -20px; color: var(--c-green-7); animation: blobDrift 3s ease-in-out .5s infinite alternate; }
+    .hp-2 { bottom: -58px; right: -10px; color: var(--c-teal-6); animation: blobDrift 3.5s ease-in-out 1s infinite alternate; }
+
+    /* ══ Шаги ══ */
+    .steps-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+    .step-card {
+      background: var(--c-surface); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--c-border); border-radius: var(--radius-xl);
+      padding: 1.75rem; box-shadow: var(--shadow-sm);
+      transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+    }
+    .step-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .step-num { font-family: var(--font-display); font-size: 2.5rem; font-style: italic; color: rgba(34,197,94,0.18); line-height: 1; margin-bottom: 0.5rem; }
+    .step-icon {
+      width: 44px; height: 44px; border-radius: var(--radius-md); margin-bottom: 1rem;
+      background: linear-gradient(135deg,rgba(34,197,94,0.12),rgba(20,184,166,0.10));
+      border: 1px solid rgba(34,197,94,0.16);
+      display: flex; align-items: center; justify-content: center; color: var(--c-green-6);
+    }
+    .step-title { font-family: var(--font-display); font-size: 1.2rem; font-style: italic; color: var(--c-green-8); margin-bottom: 0.5rem; }
+    .step-desc { font-size: 0.875rem; color: var(--c-text-muted); line-height: 1.65; margin-bottom: 1rem; }
+    .step-demo {
+      background: rgba(237,250,243,0.65); border: 1px solid rgba(34,197,94,0.15);
+      border-radius: var(--radius-md); padding: 0.875rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .sd-field {
+      background: rgba(255,255,255,0.75); border: 1px solid rgba(34,197,94,0.14);
+      border-radius: var(--radius-sm); padding: 0.4rem 0.65rem;
+      display: flex; gap: 0.5rem; align-items: center; font-size: 0.78125rem;
+    }
+    .sd-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--c-text-muted); }
+    .sd-val { font-weight: 600; color: var(--c-text); margin-left: auto; }
+    .sd-cta { background: linear-gradient(135deg,var(--c-green-5),var(--c-teal-5)); color: #fff; border-radius: var(--radius-full); padding: 0.4rem 0.75rem; font-size: 0.78125rem; font-weight: 700; text-align: center; }
+    .sd-result { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.22); border-radius: var(--radius-sm); padding: 0.4rem 0.65rem; font-size: 0.78125rem; font-weight: 700; color: var(--c-green-7); text-align: center; }
+    .sd-bar-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--c-text-muted); }
+    .sd-bar { height: 6px; border-radius: 3px; flex-shrink: 0; }
+    .sd-total { font-size: 0.78125rem; font-weight: 700; color: var(--c-green-7); text-align: center; padding-top: 0.35rem; border-top: 1px solid rgba(34,197,94,0.14); }
+
+    /* ══ Возможности ══ */
+    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .feat-card {
+      background: var(--c-surface); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--c-border); border-radius: var(--radius-xl);
+      padding: 1.75rem; box-shadow: var(--shadow-sm);
+      transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+    }
+    .feat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .feat-wide { grid-column: span 2; display: flex; gap: 1.5rem; }
+    .feat-wide .feat-content { flex: 1; }
+    .feat-icon {
+      width: 42px; height: 42px; border-radius: var(--radius-md); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 0.875rem;
+    }
+    .fi-green { background: linear-gradient(135deg,rgba(34,197,94,0.12),rgba(20,184,166,0.08)); border: 1px solid rgba(34,197,94,0.16); color: var(--c-green-6); }
+    .fi-teal { background: linear-gradient(135deg,rgba(20,184,166,0.12),rgba(34,197,94,0.08)); border: 1px solid rgba(20,184,166,0.18); color: var(--c-teal-6); }
+    .feat-title { font-family: var(--font-display); font-size: 1.15rem; font-style: italic; color: var(--c-green-8); margin-bottom: 0.5rem; }
+    .feat-desc { font-size: 0.875rem; color: var(--c-text-muted); line-height: 1.65; }
+    .feat-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 1rem; }
+    .feat-chip { padding: 0.25rem 0.65rem; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.18); border-radius: var(--radius-full); font-size: 0.78125rem; font-weight: 600; color: var(--c-green-7); }
+    .feat-formula { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; background: rgba(237,250,243,0.70); border: 1px solid rgba(34,197,94,0.18); border-radius: var(--radius-md); padding: 0.65rem 0.875rem; margin-top: 1rem; font-size: 0.8125rem; }
+    .ff-qty,.ff-coef { font-weight: 700; color: var(--c-green-7); padding: 0.1rem 0.4rem; background: rgba(34,197,94,0.10); border-radius: var(--radius-sm); }
+    .ff-op { color: var(--c-text-muted); font-weight: 600; }
+    .ff-res { font-weight: 800; color: var(--c-green-5); }
+    .feat-cta-card {
+      background: linear-gradient(135deg,rgba(220,252,231,0.72),rgba(204,251,241,0.60)) !important;
+      border-color: rgba(34,197,94,0.25) !important;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+    }
+
+    /* ══ Калькулятор ══ */
+    .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+    .calc-card, .facts-card {
+      background: var(--c-surface); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--c-border); border-radius: var(--radius-xl);
+      padding: 1.75rem; box-shadow: var(--shadow-sm);
+    }
+    .calc-title { font-family: var(--font-display); font-size: 1.2rem; font-style: italic; color: var(--c-green-8); margin-bottom: 0.25rem; }
+    .calc-hint { font-size: 0.875rem; color: var(--c-text-muted); margin-bottom: 1.25rem; }
+    .calc-form { display: flex; flex-direction: column; gap: 0.875rem; margin-bottom: 1.25rem; }
+    .calc-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--c-text-muted); display: block; margin-bottom: 0.35rem; }
+    .calc-qty-row { display: flex; align-items: center; gap: 0.5rem; }
+    .calc-qty-btn {
+      width: 36px; height: 36px; border-radius: var(--radius-md);
+      border: 1.5px solid rgba(34,197,94,0.22);
+      background: rgba(255,255,255,0.70); color: var(--c-green-7);
+      font-size: 1.2rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+      transition: all var(--dur) var(--ease);
+    }
+    .calc-qty-btn:hover { background: rgba(34,197,94,0.10); border-color: var(--c-green-5); }
+    .calc-result {
+      background: linear-gradient(135deg,rgba(220,252,231,0.80),rgba(204,251,241,0.55));
+      border: 1px solid rgba(34,197,94,0.25); border-radius: var(--radius-lg);
+      padding: 1.125rem; text-align: center; margin-bottom: 1.125rem;
+    }
+    .cr-main { display: flex; align-items: baseline; justify-content: center; gap: 0.4rem; margin-bottom: 0.25rem; }
+    .cr-val { font-family: var(--font-display); font-size: 2.5rem; font-style: italic; color: var(--c-green-7); line-height: 1; }
+    .cr-unit { font-size: 0.8125rem; font-weight: 600; color: var(--c-text-muted); }
+    .cr-note { font-size: 0.8125rem; color: var(--c-text-muted); line-height: 1.8; }
+    .calc-cta { background: rgba(237,250,243,0.70); border: 1px solid rgba(34,197,94,0.14); border-radius: var(--radius-md); padding: 1rem; text-align: center; }
+    .calc-cta p { font-size: 0.8125rem; color: var(--c-text-muted); margin-bottom: 0.75rem; }
+    .facts-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--c-text-muted); margin-bottom: 1rem; }
+    .facts-list { position: relative; min-height: 130px; margin-bottom: 1rem; }
+    .facts-item { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .4s var(--ease); }
+    .facts-item.active { opacity: 1; pointer-events: auto; position: relative; }
+    .facts-emoji { font-size: 2rem; margin-bottom: 0.5rem; }
+    .facts-item p { font-size: 0.9375rem; color: var(--c-text-muted); line-height: 1.7; }
+    .facts-item strong { color: var(--c-green-6); }
+    .facts-dots { display: flex; gap: 0.4rem; }
+    .facts-dot { width: 8px; height: 8px; border-radius: 4px; border: none; background: rgba(34,197,94,0.20); cursor: pointer; transition: .25s; }
+    .facts-dot.active { background: var(--c-green-5); width: 20px; }
+
+    /* ══ CTA ══ */
+    .lp-cta-box {
+      background: linear-gradient(135deg,var(--c-green-7),var(--c-teal-6));
+      border-radius: var(--radius-xl); padding: clamp(2.5rem,6vw,4.5rem) clamp(1.5rem,5vw,4rem);
+      text-align: center; position: relative; overflow: hidden;
+    }
+    .lp-cta-box::before { content: ''; position: absolute; inset: -40px; background: radial-gradient(ellipse at 50% 0%,rgba(134,239,172,0.22),transparent 60%); pointer-events: none; }
+    .lp-cta-inner { position: relative; z-index: 1; }
+    .lp-cta-h2 { font-family: var(--font-display); font-size: clamp(1.75rem,1rem+3vw,2.75rem); font-style: italic; color: #fff; margin-bottom: 0.875rem; line-height: 1.2; }
+    .lp-cta-sub { font-size: 1rem; color: rgba(255,255,255,0.80); max-width: 460px; margin: 0 auto 1.75rem; line-height: 1.7; }
+    .lp-cta-btns { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+    .lp-cta-btn-white { font-family: var(--font-body); font-size: 1rem; font-weight: 700; padding: 0.75rem 1.75rem; border-radius: var(--radius-full); background: #fff; color: var(--c-green-8); border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: all var(--dur) var(--ease); }
+    .lp-cta-btn-white:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(0,0,0,0.20); }
+    .lp-cta-btn-border { font-family: var(--font-body); font-size: 0.9375rem; font-weight: 600; padding: 0.7rem 1.5rem; border-radius: var(--radius-full); background: transparent; color: rgba(255,255,255,.90); border: 1.5px solid rgba(255,255,255,.35); cursor: pointer; transition: all var(--dur) var(--ease); }
+    .lp-cta-btn-border:hover { border-color: rgba(255,255,255,.7); background: rgba(255,255,255,.1); }
+
+    /* ══ Footer ══ */
+    #lp-footer {
+      position: relative; z-index: 1;
+      padding: 3rem clamp(1.25rem,4vw,2.5rem) 1.5rem;
+      border-top: 1px solid rgba(134,239,172,0.22);
+      background: rgba(237,250,243,0.60); backdrop-filter: blur(8px);
+    }
+    .lp-footer-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-items: start; margin-bottom: 2rem; }
+    .lp-footer-links { display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
+    .lp-footer-links a { font-size: 0.875rem; color: var(--c-text-muted); text-decoration: none; transition: color var(--dur) var(--ease); }
+    .lp-footer-links a:hover { color: var(--c-green-7); }
+    .lp-footer-right { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; }
+    .lp-footer-tagline { font-size: 0.8125rem; color: var(--c-text-muted); line-height: 1.7; margin-top: 0.5rem; }
+    .lp-footer-bottom { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; padding-top: 1.25rem; border-top: 1px solid rgba(34,197,94,0.12); font-size: 0.8125rem; color: var(--c-text-muted); }
+
+    /* ══ Анимация появления ══ */
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .5s var(--ease), transform .5s var(--ease); }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    /* ══ Бургер ══ */
+    .lp-burger { display: none; flex-direction: column; gap: 5px; padding: .5rem; background: none; border: none; cursor: pointer; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: var(--radius-md); }
+    .lp-burger span { display: block; width: 20px; height: 2px; background: var(--c-green-7); border-radius: 2px; transition: .2s; }
+    .lp-burger.open span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
+    .lp-burger.open span:nth-child(2) { opacity: 0; }
+    .lp-burger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
+    .lp-mobile-menu { position: absolute; top: 64px; left: 0; right: 0; background: rgba(237,250,243,0.97); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(134,239,172,0.22); padding: 1rem 1.5rem 1.25rem; display: flex; flex-direction: column; gap: 0.25rem; box-shadow: var(--shadow-md); z-index: 99; }
+    .lp-mm-link { display: block; padding: 0.65rem 0.75rem; border-radius: var(--radius-md); font-weight: 500; color: var(--c-text-muted); text-decoration: none; transition: background var(--dur) var(--ease); }
+    .lp-mm-link:hover { background: rgba(34,197,94,0.08); color: var(--c-green-7); }
+    .lp-mm-sep { height: 1px; background: rgba(34,197,94,0.14); margin: .5rem 0; }
+
+    @media (max-width: 900px) { .hero-visual { display: none; } }
+    @media (max-width: 820px) { .steps-grid,.features-grid,.calc-grid { grid-template-columns: 1fr; } .feat-wide { grid-column: span 1; flex-direction: column; } .lp-footer-inner { grid-template-columns: 1fr; } .lp-footer-right { align-items: flex-start; } .lp-footer-bottom { flex-direction: column; gap: .25rem; } }
+    @media (max-width: 720px) { .lp-nav-links, .lp-nav-btns { display: none; } .lp-burger { display: flex; } }
+
+    /* ── Авторизованная шапка ──────────────────────────────── */
+    #lp-auth-user-bar {
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .lp-user-chip {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.3rem 0.75rem 0.3rem 0.45rem;
+      background: rgba(34,197,94,0.10);
+      border: 1px solid rgba(34,197,94,0.22);
+      border-radius: 9999px;
+      font-size: 0.8rem; font-weight: 600; color: var(--text2);
+    }
+    .lp-user-avatar {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--g6), var(--t6));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+    .lp-open-app-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 1rem;
+      background: linear-gradient(135deg, var(--g6), var(--t6));
+      color: #fff !important; font-size: 0.8rem; font-weight: 700;
+      border: none; border-radius: 9999px; text-decoration: none;
+      box-shadow: 0 2px 10px rgba(22,163,74,0.28);
+      transition: all 0.18s cubic-bezier(0.16,1,0.3,1);
+      cursor: pointer;
+    }
+    .lp-open-app-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(22,163,74,0.40);
+    }
+    .lp-logout-link {
+      font-size: 0.78rem; font-weight: 600; color: var(--muted);
+      background: none; border: none; cursor: pointer;
+      padding: 0.3rem 0.5rem; border-radius: 0.4rem;
+      transition: color 0.15s; font-family: inherit;
+    }
+    .lp-logout-link:hover { color: #ef4444; }
+    .lp-mm-user-info {
+      font-size: 0.875rem; font-weight: 600;
+      color: var(--text2); padding: 0.5rem 0.75rem 0.25rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Анимированный фон (идентично index.html) -->
+<div id="bg-blobs" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div id="ambient-grid" aria-hidden="true"></div>
+<div id="floating-leaves" aria-hidden="true"></div>
+
+<!-- ═══ МОДАЛЬНОЕ ОКНО AUTH ═══ -->
+<div id="auth-modal" class="hidden" role="dialog" aria-modal="true">
+  <div class="auth-modal-card">
+    <button class="auth-modal-close" id="modal-close-btn" aria-label="Закрыть">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <!-- Форма входа -->
+    <div id="modal-login">
+      <div class="auth-modal-logo-wrap">
+        <div class="auth-modal-logo-circle">
+          <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+            <path d="M20 36C20 36 4 26 4 14C4 7 11 3 15 5C18 6 19 10 20 13C21 10 22 6 25 5C29 3 36 7 36 14C36 26 20 36 20 36Z" fill="url(#mLG)" opacity="0.85"/>
+            <defs><linearGradient id="mLG" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#14b8a6"/></linearGradient></defs>
+          </svg>
+        </div>
+        <h2 class="auth-modal-title-h2">Вход в систему</h2>
+        <p class="auth-modal-sub">Отслеживайте свой экологический вклад</p>
+      </div>
+      <div id="modal-api-err" class="auth-modal-err hidden"></div>
+      <form id="modal-login-form" class="auth-modal-form" novalidate>
+        <div>
+          <label for="ml-user" class="eco-label">Имя пользователя</label>
+          <input type="text" id="ml-user" required placeholder="Введите имя..." autocomplete="username">
+        </div>
+        <div>
+          <label for="ml-pass" class="eco-label">Пароль</label>
+          <input type="password" id="ml-pass" required placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button type="submit" class="neon-btn" id="modal-login-btn">Войти</button>
+      </form>
+      <div class="eco-divider"></div>
+      <button class="auth-toggle-btn" id="go-register">Нет аккаунта? <strong>Зарегистрируйтесь</strong></button>
+    </div>
+
+    <!-- Форма регистрации -->
+    <div id="modal-register" class="hidden">
+      <div class="auth-modal-logo-wrap">
+        <div class="auth-modal-logo-circle">
+          <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+            <path d="M20 36C20 36 4 26 4 14C4 7 11 3 15 5C18 6 19 10 20 13C21 10 22 6 25 5C29 3 36 7 36 14C36 26 20 36 20 36Z" fill="url(#mRG)" opacity="0.85"/>
+            <defs><linearGradient id="mRG" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#14b8a6"/></linearGradient></defs>
+          </svg>
+        </div>
+        <h2 class="auth-modal-title-h2">Регистрация</h2>
+        <p class="auth-modal-sub">Начните отслеживать свой вклад сегодня</p>
+      </div>
+      <div id="modal-reg-err" class="auth-modal-err hidden"></div>
+      <form id="modal-register-form" class="auth-modal-form" novalidate>
+        <div>
+          <label for="mr-user" class="eco-label">Имя пользователя</label>
+          <input type="text" id="mr-user" required placeholder="Придумайте имя..." autocomplete="username">
+        </div>
+        <div>
+          <label for="mr-email" class="eco-label">Email</label>
+          <input type="email" id="mr-email" required placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div>
+          <label for="mr-pass" class="eco-label">Пароль</label>
+          <input type="password" id="mr-pass" required minlength="6" placeholder="Минимум 6 символов" autocomplete="new-password">
+        </div>
+        <button type="submit" class="neon-btn" id="modal-reg-btn">Зарегистрироваться</button>
+      </form>
+      <div class="eco-divider"></div>
+      <button class="auth-toggle-btn" id="go-login">Уже есть аккаунт? <strong>Войти</strong></button>
+    </div>
+
+    <!-- Успех -->
+    <div id="modal-success" class="auth-modal-success hidden">
+      <div class="auth-modal-success-icon">✓</div>
+      <h3 style="font-family:var(--font-display);font-size:1.5rem;font-style:italic;color:var(--c-green-8);" id="modal-success-title">Добро пожаловать!</h3>
+      <p id="modal-success-sub" style="font-size:.875rem;color:var(--c-text-muted);margin-top:.35rem;">Входим в систему...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ШАПКА ═══ -->
+<header id="lp-header">
+  <div class="lp-header-inner">
+    <div class="logo-mark">
+      <div class="logo-icon" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <span class="logo-text">EcoTracker</span>
+    </div>
+    <nav class="lp-nav-links" aria-label="Навигация по лендингу">
+      <a href="#how" class="lp-nav-link">Как работает</a>
+      <a href="#features" class="lp-nav-link">Возможности</a>
+      <a href="#calc" class="lp-nav-link">Калькулятор</a>
+    </nav>
+    <!-- Гостевые кнопки -->
+    <div class="lp-nav-btns" id="lp-guest-btns">
+      <button class="lp-btn-ghost open-auth" data-mode="login">Войти</button>
+      <button class="lp-btn-primary open-auth" data-mode="register">Начать бесплатно</button>
+    </div>
+    <!-- Шапка авторизованного пользователя (скрыта до проверки токена) -->
+    <div id="lp-auth-user-bar" style="display:none;">
+      <div class="lp-user-chip">
+        <div class="lp-user-avatar" id="lp-avatar-initials">?</div>
+        <span id="lp-username-label">Пользователь</span>
+      </div>
+      <a href="index.html" class="lp-open-app-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        В приложение
+      </a>
+      <button class="lp-logout-link" id="lp-logout-btn">Выйти</button>
+    </div>
+    <button class="lp-burger" id="lp-burger" aria-label="Открыть меню"><span></span><span></span><span></span></button>
+  </div>
+  <nav class="lp-mobile-menu hidden" id="lp-mobile-menu">
+    <a href="#how" class="lp-mm-link">Как работает</a>
+    <a href="#features" class="lp-mm-link">Возможности</a>
+    <a href="#calc" class="lp-mm-link">Калькулятор</a>
+    <div class="lp-mm-sep"></div>
+    <!-- Мобильные кнопки для гостей -->
+    <div id="lp-mm-guest">
+      <button class="lp-mm-link open-auth" data-mode="login" style="background:none;border:none;cursor:pointer;text-align:left;font-size:inherit;font-family:inherit;width:100%;padding:.65rem .75rem;">Войти</button>
+      <button class="lp-btn-primary open-auth" data-mode="register" style="margin-top:.25rem;width:100%;">Зарегистрироваться</button>
+    </div>
+    <!-- Мобильная шапка для авторизованных -->
+    <div id="lp-mm-auth" style="display:none;">
+      <div class="lp-mm-user-info" id="lp-mm-username">Пользователь</div>
+      <a href="index.html" class="lp-btn-primary" style="display:flex;align-items:center;gap:.4rem;justify-content:center;margin:.25rem 0;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Открыть приложение
+      </a>
+      <button id="lp-mm-logout" class="lp-mm-link" style="background:none;border:none;cursor:pointer;text-align:left;font-size:inherit;font-family:inherit;width:100%;padding:.65rem .75rem;color:#ef4444;">
+        Выйти из аккаунта
+      </button>
+    </div>
+  </nav>
+</header>
+
+<!-- ═══ MAIN ═══ -->
+<main id="lp-main">
+
+  <!-- HERO -->
+  <section id="lp-hero">
+    <div class="hero-layout">
+      <div class="hero-content">
+        <div class="hero-badge"><span class="hero-pulse"></span> Бесплатно · Без ограничений</div>
+        <h1 class="hero-h1">Каждое действие<br>меняет планету</h1>
+        <p class="hero-sub">EcoTracker считает, сколько CO₂ вы предотвратили своими эко-действиями. Ездите на велосипеде, сортируете мусор, экономите электроэнергию — и видите реальный вклад.</p>
+        <div class="hero-btns">
+          <button class="lp-btn-primary lp-btn-lg open-auth" data-mode="register" style="display:inline-flex;align-items:center;gap:.45rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+            Начать бесплатно
+          </button>
+          <a href="#how" class="lp-btn-outline lp-btn-lg">Как это работает <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></a>
+        </div>
+        <div class="hero-stats">
+          <div class="hs-item"><span class="hs-val">10+</span><span class="hs-lbl">типов действий</span></div>
+          <div class="hs-sep"></div>
+          <div class="hs-item"><span class="hs-val">CO₂</span><span class="hs-lbl">расчёт в реальном времени</span></div>
+          <div class="hs-sep"></div>
+          <div class="hs-item"><span class="hs-val">🌳</span><span class="hs-lbl">эквивалент деревьев</span></div>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="hero-card">
+          <div class="hc-header">
+            <div class="hc-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--c-green-6)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <span class="hc-title">Мой вклад за месяц</span>
+          </div>
+          <div class="hc-big"><span class="hc-num" id="hero-counter">0.0</span><span class="hc-unit">kg CO₂e</span></div>
+          <div class="hc-note">≈ <span id="hero-trees">0</span> посаженных деревьев 🌳</div>
+          <div class="hc-bars">
+            <div class="hc-bar-row"><span>🚲 Велосипед</span><div class="hc-bar-bg"><div class="hc-bar-fill" style="width:78%;background:var(--c-green-5)"></div></div><span>42.3</span></div>
+            <div class="hc-bar-row"><span>♻️ Переработка</span><div class="hc-bar-bg"><div class="hc-bar-fill" style="width:45%;background:var(--c-teal-5)"></div></div><span>24.5</span></div>
+            <div class="hc-bar-row"><span>🌱 Сортировка</span><div class="hc-bar-bg"><div class="hc-bar-fill" style="width:28%;background:var(--c-green-4)"></div></div><span>15.2</span></div>
+            <div class="hc-bar-row"><span>💡 Экономия эл.</span><div class="hc-bar-bg"><div class="hc-bar-fill" style="width:18%;background:var(--c-green-3)"></div></div><span>9.8</span></div>
+          </div>
+        </div>
+        <div class="hero-pill hp-1"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:.2rem;"><path d="M5 13l4 4L19 7"/></svg> Запись добавлена!</div>
+        <div class="hero-pill hp-2" style="margin-top:12px;">🌍 +3.4 kg CO₂ сохранено</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- КАК РАБОТАЕТ -->
+  <section id="how" class="lp-section lp-alt-bg">
+    <div class="lp-container">
+      <div class="lp-section-label">Как работает</div>
+      <h2 class="lp-h2">Три простых шага к результату</h2>
+      <div class="steps-grid">
+        <div class="step-card reveal">
+          <div class="step-num">01</div>
+          <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg></div>
+          <h3 class="step-title">Зарегистрируйтесь</h3>
+          <p class="step-desc">Создайте бесплатный аккаунт за 30 секунд. Нужны только имя, email и пароль.</p>
+          <div class="step-demo">
+            <div class="sd-field"><span class="sd-label">Имя</span><span class="sd-val">eco_user</span></div>
+            <div class="sd-field"><span class="sd-label">Email</span><span class="sd-val">user@mail.ru</span></div>
+            <div class="sd-cta">Создать аккаунт →</div>
+          </div>
+        </div>
+        <div class="step-card reveal">
+          <div class="step-num">02</div>
+          <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <h3 class="step-title">Записывайте действия</h3>
+          <p class="step-desc">Выберите тип действия, укажите количество и дату. CO₂ рассчитается мгновенно.</p>
+          <div class="step-demo">
+            <div class="sd-field"><span class="sd-label">Действие</span><span class="sd-val">🚲 Велосипед</span></div>
+            <div class="sd-field"><span class="sd-label">км</span><span class="sd-val">15</span></div>
+            <div class="sd-result">✓ Сохранено: −3.15 kg CO₂</div>
+          </div>
+        </div>
+        <div class="step-card reveal">
+          <div class="step-num">03</div>
+          <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <h3 class="step-title">Следите за прогрессом</h3>
+          <p class="step-desc">Смотрите отчёт: суммарный вклад, разбивка по категориям, эквивалент деревьев.</p>
+          <div class="step-demo">
+            <div class="sd-bar-row"><div class="sd-bar" style="width:85px;background:var(--c-green-5)"></div><span>Транспорт 42.3</span></div>
+            <div class="sd-bar-row"><div class="sd-bar" style="width:55px;background:var(--c-teal-5)"></div><span>Отходы 24.5</span></div>
+            <div class="sd-bar-row"><div class="sd-bar" style="width:35px;background:var(--c-green-4)"></div><span>Энергия 15.2</span></div>
+            <div class="sd-total">Итого: 91.8 kg CO₂e · 4 🌳</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ВОЗМОЖНОСТИ -->
+  <section id="features" class="lp-section">
+    <div class="lp-container">
+      <div class="lp-section-label">Возможности</div>
+      <h2 class="lp-h2">Всё для осознанной экологии</h2>
+      <div class="features-grid">
+        <div class="feat-card feat-wide reveal">
+          <div class="feat-content">
+            <div class="feat-icon fi-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <h3 class="feat-title">10+ категорий эко-действий</h3>
+            <p class="feat-desc">Транспорт, переработка, энергосбережение, сортировка — всё с научно обоснованными коэффициентами.</p>
+            <div class="feat-chips">
+              <span class="feat-chip">🚲 Велосипед</span><span class="feat-chip">♻️ Переработка</span><span class="feat-chip">🌱 Компост</span><span class="feat-chip">💡 LED</span><span class="feat-chip">🚿 Вода</span><span class="feat-chip">🥗 Рацион</span><span class="feat-chip">🏠 Отопление</span><span class="feat-chip">✈️ Перелёты</span>
+            </div>
+          </div>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-icon fi-teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <h3 class="feat-title">Мгновенный расчёт CO₂</h3>
+          <p class="feat-desc">Как только записываете действие — система считает CO₂ по международным стандартам.</p>
+          <div class="feat-formula"><span class="ff-qty">15 км</span><span class="ff-op">×</span><span class="ff-coef">0.21</span><span class="ff-op">=</span><span class="ff-res">3.15 kg CO₂</span></div>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-icon fi-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <h3 class="feat-title">Отчёты по периодам</h3>
+          <p class="feat-desc">Выберите период и получите детальный отчёт с диаграммой по категориям.</p>
+        </div>
+        <div class="feat-card feat-cta-card reveal" style="text-align:center;">
+          <div style="font-size:2.25rem;margin-bottom:.75rem;">🌍</div>
+          <h3 class="feat-title">Готовы начать?</h3>
+          <p class="feat-desc">Регистрация занимает меньше минуты. Бесплатно.</p>
+          <button class="neon-btn open-auth" data-mode="register" style="margin-top:1rem;font-size:.875rem;padding:.65rem 1.25rem;">Создать аккаунт →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- КАЛЬКУЛЯТОР -->
+  <section id="calc" class="lp-section lp-alt-bg">
+    <div class="lp-container">
+      <div class="lp-section-label">Попробуйте сейчас</div>
+      <h2 class="lp-h2">Мини-калькулятор без регистрации</h2>
+      <div class="calc-grid">
+        <div class="calc-card reveal">
+          <h3 class="calc-title">Посчитайте свой вклад</h3>
+          <p class="calc-hint">Выберите действие и укажите количество.</p>
+          <div class="calc-form">
+            <div>
+              <label class="calc-label" for="calc-action">Тип действия</label>
+              <select id="calc-action">
+                <option value="0.21">🚲 Велосипед вместо авто (1 км)</option>
+                <option value="0.5">♻️ Переработка бумаги (1 кг)</option>
+                <option value="2.5">🌱 Компостирование (1 кг)</option>
+                <option value="0.233">💡 Экономия электроэнергии (1 кВт·ч)</option>
+                <option value="1.9">🥗 День без мяса (1 день)</option>
+                <option value="0.015">🚿 Экономия воды (1 литр)</option>
+              </select>
+            </div>
+            <div>
+              <label class="calc-label" for="calc-qty">Количество</label>
+              <div class="calc-qty-row">
+                <button class="calc-qty-btn" id="qty-minus" type="button" aria-label="Уменьшить">−</button>
+                <input type="number" id="calc-qty" class="calc-qty-input" value="5" min="1" max="9999" style="text-align:center;font-weight:700;font-size:1.0625rem;flex:1;border:1.5px solid rgba(22,163,74,.20);border-radius:var(--radius-md);padding:.6rem .75rem;background:rgba(255,255,255,.70);">
+                <button class="calc-qty-btn" id="qty-plus" type="button" aria-label="Увеличить">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="calc-result">
+            <div class="cr-main"><span class="cr-val" id="cr-val">1.05</span><span class="cr-unit">kg CO₂e</span></div>
+            <div class="cr-note">≈ <span id="cr-trees">0.05</span> посаженных деревьев 🌳</div>
+            <div class="cr-note">= <span id="cr-km">5</span> км на автомобиле</div>
+          </div>
+          <div class="calc-cta">
+            <p>Хотите отслеживать всё накопленным итогом?</p>
+            <button class="neon-btn open-auth" data-mode="register" style="font-size:.875rem;padding:.65rem 1.25rem;margin-top:.25rem;">Зарегистрироваться бесплатно →</button>
+          </div>
+        </div>
+        <div class="facts-card reveal">
+          <div class="facts-title">Знаете ли вы?</div>
+          <div class="facts-list">
+            <div class="facts-item active"><div class="facts-emoji">🌳</div><p>Одно дерево поглощает около <strong>22 кг CO₂</strong> в год. Ездя на велосипеде 100 км в месяц, вы сохраняете столько же!</p></div>
+            <div class="facts-item"><div class="facts-emoji">🚲</div><p>Замена одной поездки на авто (10 км) велосипедом предотвращает <strong>~2.1 кг CO₂</strong> — как не включать лампочку 10 дней.</p></div>
+            <div class="facts-item"><div class="facts-emoji">♻️</div><p>Переработка 1 кг алюминия сохраняет <strong>9 кг CO₂</strong> — эквивалент 40 км на автомобиле.</p></div>
+            <div class="facts-item"><div class="facts-emoji">🥗</div><p>Один день без мяса в неделю — это <strong>до 80 кг CO₂</strong> меньше за год.</p></div>
+          </div>
+          <div class="facts-dots" id="facts-dots">
+            <button class="facts-dot active" data-i="0" type="button"></button>
+            <button class="facts-dot" data-i="1" type="button"></button>
+            <button class="facts-dot" data-i="2" type="button"></button>
+            <button class="facts-dot" data-i="3" type="button"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ФИНАЛЬНЫЙ CTA -->
+  <section class="lp-section">
+    <div class="lp-container">
+      <div class="lp-cta-box reveal">
+        <div class="lp-cta-inner">
+          <div style="font-size:2.5rem;margin-bottom:.875rem;">🌍</div>
+          <h2 class="lp-cta-h2">Начните отслеживать свой вклад сегодня</h2>
+          <p class="lp-cta-sub">Регистрация займёт меньше минуты. Уже сегодня вы увидите, насколько ваши действия меняют мир.</p>
+          <div class="lp-cta-btns">
+            <button class="lp-cta-btn-white open-auth" data-mode="register">Создать бесплатный аккаунт</button>
+            <button class="lp-cta-btn-border open-auth" data-mode="login">Уже есть аккаунт? Войти</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer id="lp-footer">
+  <div class="lp-footer-inner">
+    <div>
+      <div class="logo-mark">
+        <div class="logo-icon" style="width:28px;height:28px;" aria-hidden="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <span class="logo-text">EcoTracker</span>
+      </div>
+      <p class="lp-footer-tagline">Считайте каждое действие.<br>Вместе — меняем планету.</p>
+    </div>
+    <nav class="lp-footer-links" aria-label="Footer links">
+      <a href="#how">Как работает</a>
+      <a href="#features">Возможности</a>
+      <a href="#calc">Калькулятор</a>
+    </nav>
+    <div class="lp-footer-right">
+      <button class="lp-btn-primary open-auth" data-mode="register">Начать бесплатно</button>
+      <button class="auth-toggle-btn open-auth" data-mode="login" style="width:auto;padding:.25rem 0;margin-top:.35rem;">Уже есть аккаунт? <strong>Войти →</strong></button>
+    </div>
+  </div>
+  <div class="lp-footer-bottom"><span>© 2026 EcoTracker</span><span>Для лучшей планеты 🌿</span></div>
+</footer>
+
+<script>
+var LP_API = window.location.protocol + '//' + window.location.hostname + ':3000/api';
+
+// ─── Modal ───────────────────────────────────────────────────
+var modal = document.getElementById('auth-modal');
+var wLogin = document.getElementById('modal-login');
+var wReg = document.getElementById('modal-register');
+var wSuccess = document.getElementById('modal-success');
+
+function openModal(mode) {
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('modal-api-err').classList.add('hidden');
+  document.getElementById('modal-reg-err').classList.add('hidden');
+  if (mode === 'register') {
+    wLogin.classList.add('hidden'); wReg.classList.remove('hidden'); wSuccess.classList.add('hidden');
+    setTimeout(function(){ var el=document.getElementById('mr-user'); if(el)el.focus(); },50);
+  } else {
+    wLogin.classList.remove('hidden'); wReg.classList.add('hidden'); wSuccess.classList.add('hidden');
+    setTimeout(function(){ var el=document.getElementById('ml-user'); if(el)el.focus(); },50);
+  }
+}
+function closeModal() { modal.classList.add('hidden'); document.body.style.overflow = ''; }
+
+document.querySelectorAll('.open-auth').forEach(function(b){
+  b.addEventListener('click', function(){ openModal(b.dataset.mode || 'login'); });
+});
+modal.addEventListener('click', function(e){ if(e.target===modal) closeModal(); });
+document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+document.getElementById('go-register').addEventListener('click', function(){ openModal('register'); });
+document.getElementById('go-login').addEventListener('click', function(){ openModal('login'); });
+
+function showErr(id, msg) { var el=document.getElementById(id); el.textContent=msg; el.classList.remove('hidden'); }
+function setBtn(id, loading) {
+  var btn=document.getElementById(id); btn.disabled=loading;
+  btn.innerHTML=loading?'<span class="btn-spinner"></span>':(id==='modal-login-btn'?'Войти':'Зарегистрироваться');
+}
+async function apiPost(url, body) {
+  try {
+    var r=await fetch(LP_API+url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    var d=await r.json().catch(function(){return{};});
+    return {ok:r.ok,data:d};
+  } catch(e) { return {ok:false,data:{message:'Ошибка сети.'}}; }
+}
+function showSuccess(title, sub) {
+  wLogin.classList.add('hidden'); wReg.classList.add('hidden'); wSuccess.classList.remove('hidden');
+  document.getElementById('modal-success-title').textContent=title;
+  document.getElementById('modal-success-sub').textContent=sub;
+}
+
+document.getElementById('modal-login-form').addEventListener('submit', async function(e){
+  e.preventDefault();
+  document.getElementById('modal-api-err').classList.add('hidden');
+  var u=document.getElementById('ml-user').value.trim(), p=document.getElementById('ml-pass').value;
+  if(!u||!p){showErr('modal-api-err','Заполните все поля');return;}
+  setBtn('modal-login-btn',true);
+  var res=await apiPost('/login',{username:u,password:p});
+  setBtn('modal-login-btn',false);
+  if(res.ok&&res.data.token){
+    localStorage.setItem('authToken',res.data.token);
+    showSuccess('Добро пожаловать!','Входим в систему...');
+    setTimeout(function(){ window.location.href='index.html'; },1200);
+  } else { showErr('modal-api-err',res.data.message||'Неверное имя или пароль'); }
+});
+
+document.getElementById('modal-register-form').addEventListener('submit', async function(e){
+  e.preventDefault();
+  document.getElementById('modal-reg-err').classList.add('hidden');
+  var u=document.getElementById('mr-user').value.trim(), em=document.getElementById('mr-email').value.trim(), p=document.getElementById('mr-pass').value;
+  if(!u||!em||!p){showErr('modal-reg-err','Заполните все поля');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){showErr('modal-reg-err','Введите корректный email');return;}
+  if(p.length<6){showErr('modal-reg-err','Пароль минимум 6 символов');return;}
+  setBtn('modal-reg-btn',true);
+  var res=await apiPost('/register',{username:u,email:em,password:p});
+  if(res.ok){
+    var lr=await apiPost('/login',{username:u,password:p});
+    if(lr.ok&&lr.data.token) localStorage.setItem('authToken',lr.data.token);
+    showSuccess('Аккаунт создан!','Добро пожаловать в EcoTracker!');
+    setTimeout(function(){ window.location.href='index.html'; },1400);
+  } else { setBtn('modal-reg-btn',false); showErr('modal-reg-err',res.data.message||'Ошибка регистрации'); }
+});
+
+// ─── Hero counter ─────────────────────────────────────────────
+(function(){
+  var target=91.8, dur=2000, start=null;
+  var numEl=document.getElementById('hero-counter'), tEl=document.getElementById('hero-trees');
+  function tick(ts){ if(!start)start=ts; var p=Math.min((ts-start)/dur,1),e=1-Math.pow(1-p,3),v=target*e; numEl.textContent=v.toFixed(1); tEl.textContent=Math.floor(v/22); if(p<1)requestAnimationFrame(tick); }
+  setTimeout(function(){ requestAnimationFrame(tick); },600);
+})();
+
+// ─── Calculator ───────────────────────────────────────────────
+(function(){
+  var sel=document.getElementById('calc-action'), qty=document.getElementById('calc-qty');
+  function calc(){ var c=parseFloat(sel.value)||0.21, q=parseFloat(qty.value)||1, co2=c*q; document.getElementById('cr-val').textContent=co2.toFixed(2); document.getElementById('cr-trees').textContent=(co2/22).toFixed(2); document.getElementById('cr-km').textContent=(co2/0.21).toFixed(0); }
+  sel.addEventListener('change',calc); qty.addEventListener('input',calc);
+  document.getElementById('qty-minus').addEventListener('click',function(){ qty.value=Math.max(1,(parseFloat(qty.value)||1)-1); calc(); });
+  document.getElementById('qty-plus').addEventListener('click',function(){ qty.value=(parseFloat(qty.value)||1)+1; calc(); });
+  calc();
+})();
+
+// ─── Facts slider ─────────────────────────────────────────────
+(function(){
+  var items=document.querySelectorAll('.facts-item'), dots=document.querySelectorAll('.facts-dot'), cur=0;
+  function show(i){ items[cur].classList.remove('active'); dots[cur].classList.remove('active'); cur=i; items[cur].classList.add('active'); dots[cur].classList.add('active'); }
+  dots.forEach(function(d){ d.addEventListener('click',function(){ show(parseInt(d.dataset.i)); }); });
+  setInterval(function(){ show((cur+1)%items.length); },4500);
+})();
+
+// ─── Mobile menu ──────────────────────────────────────────────
+(function(){
+  var burger=document.getElementById('lp-burger'), menu=document.getElementById('lp-mobile-menu');
+  burger.addEventListener('click',function(){ var open=!menu.classList.contains('hidden'); menu.classList.toggle('hidden',open); burger.classList.toggle('open',!open); });
+  menu.querySelectorAll('a').forEach(function(a){ a.addEventListener('click',function(){ menu.classList.add('hidden'); burger.classList.remove('open'); }); });
+})();
+
+// ─── Scroll reveal ────────────────────────────────────────────
+(function(){
+  if(!('IntersectionObserver' in window)){ document.querySelectorAll('.reveal').forEach(function(e){e.classList.add('in');}); return; }
+  var obs=new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);} }); },{threshold:0.1});
+  document.querySelectorAll('.reveal').forEach(function(el){obs.observe(el);});
+})();
+
+// ─── Floating leaves (идентично index.html) ───────────────────
+(function(){
+  var root=document.getElementById('floating-leaves');
+  if(!root||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  var svgs=['<svg viewBox="0 0 18 24" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ll0" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#86efac"/><stop offset="100%" stop-color="#22c55e"/></linearGradient></defs><path d="M9 1C6 5 2 8 2 13c0 5 3 9 7 10 4-1 7-5 7-10 0-5-3-8-7-12Z" fill="url(#ll0)" opacity=".75"/><path d="M9 3c.7 6 .5 11-.7 17" stroke="rgba(255,255,255,.35)" stroke-width=".8" stroke-linecap="round"/></svg>','<svg viewBox="0 0 16 20" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ll1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#a7f3d0"/><stop offset="100%" stop-color="#14b8a6"/></linearGradient></defs><path d="M8 1C5 4 1 7 1 12c0 5 3 7 7 8 4-1 7-3 7-8 0-5-3-8-7-11Z" fill="url(#ll1)" opacity=".6"/></svg>'];
+  var W=window.innerWidth, count=W<600?6:12;
+  for(var i=0;i<count;i++){
+    var el=document.createElement('div'), sz=Math.round(Math.random()*20+9), dur=(Math.random()*14+14).toFixed(1)+'s', delay=(-Math.random()*26).toFixed(1)+'s', dx=Math.round((Math.random()-.5)*130), op=(Math.random()*.10+.06).toFixed(2);
+    el.style.cssText='position:absolute;width:'+sz+'px;height:'+sz+'px;left:'+Math.round(Math.random()*W)+'px;top:0;pointer-events:none;animation:leafFall '+dur+' linear '+delay+'s infinite;--dx:'+dx+'px;opacity:'+op+';';
+    el.innerHTML=svgs[i%svgs.length]; root.appendChild(el);
+  }
+})();
+
+// ─── Проверка авторизации на лендинге ─────────────────────────────────────
+(function(){
+  var token = localStorage.getItem('authToken');
+  if (!token) return;
+
+  var LP_API_BASE = window.location.protocol + '//' + window.location.hostname + ':3000/api';
+
+  function showAuthNav(username) {
+    // Десктоп шапка
+    var guestBtns = document.getElementById('lp-guest-btns');
+    var authBar   = document.getElementById('lp-auth-user-bar');
+    var avatarEl  = document.getElementById('lp-avatar-initials');
+    var nameEl    = document.getElementById('lp-username-label');
+    if (guestBtns) guestBtns.style.display = 'none';
+    if (authBar)   authBar.style.display   = 'flex';
+    if (avatarEl)  avatarEl.textContent    = (username || '?').slice(0, 2).toUpperCase();
+    if (nameEl)    nameEl.textContent      = username || 'Пользователь';
+
+    // Мобильное меню
+    var mmGuest = document.getElementById('lp-mm-guest');
+    var mmAuth  = document.getElementById('lp-mm-auth');
+    var mmName  = document.getElementById('lp-mm-username');
+    if (mmGuest) mmGuest.style.display = 'none';
+    if (mmAuth)  mmAuth.style.display  = 'block';
+    if (mmName)  mmName.textContent    = username || 'Пользователь';
+  }
+
+  function doLogout() {
+    localStorage.removeItem('authToken');
+    window.location.reload();
+  }
+
+  function bindLogoutBtns() {
+    var btn1 = document.getElementById('lp-logout-btn');
+    var btn2 = document.getElementById('lp-mm-logout');
+    if (btn1) btn1.addEventListener('click', doLogout);
+    if (btn2) btn2.addEventListener('click', doLogout);
+  }
+
+  fetch(LP_API_BASE + '/user', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
+  .then(function(data) {
+    showAuthNav(data.username);
+    bindLogoutBtns();
+  })
+  .catch(function() {
+    // Токен невалидный или сервер недоступен — удаляем тихо
+    localStorage.removeItem('authToken');
+  });
+})();
+</script>
+</body>
+</html>

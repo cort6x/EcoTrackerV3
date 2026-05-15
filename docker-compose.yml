@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  ecotracker:
+    build:
+      context: ./html
+      dockerfile: Dockerfile
+    container_name: ecotracker-app
+    ports:
+      - "3000:3000"
+    environment:
+      - ML_API_URL=http://ml-api:8000
+    depends_on:
+      - ml-api
+    restart: unless-stopped
+
+  ml-api:
+    build: ./EcoTracker-ML-API
+    container_name: ecotracker-ml-api
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: unless-stopped

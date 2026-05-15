@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eco-Tracker | Экологический Вклад</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="main.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🌿</text></svg>">
+  <style>
+    .header-landing-link {
+      font-family: var(--font-body, sans-serif);
+      font-size: 0.8rem; font-weight: 600;
+      padding: 0.35rem 0.875rem;
+      color: var(--c-green-7, #15803d);
+      background: rgba(34,197,94,0.08);
+      border: 1px solid rgba(34,197,94,0.20);
+      border-radius: 9999px;
+      text-decoration: none;
+      transition: all 180ms cubic-bezier(0.16,1,0.3,1);
+    }
+    .header-landing-link:hover {
+      background: rgba(34,197,94,0.16);
+      border-color: rgba(34,197,94,0.36);
+    }
+    #landing-link-btn { display: flex; align-items: center; }
+  </style>
+</head>
+<body>
+
+<!-- ═══ Animated atmospheric background ═══ -->
+<div id="bg-blobs" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div id="ambient-grid" aria-hidden="true"></div>
+<div id="floating-leaves" aria-hidden="true"></div>
+<div class="ambient-orb ambient-orb-1" aria-hidden="true"></div>
+<div class="ambient-orb ambient-orb-2" aria-hidden="true"></div>
+
+<!-- ═══ HEADER ═══ -->
+<header id="app-header">
+  <div class="header-inner">
+    <!-- Logo -->
+    <div class="logo-mark">
+      <div class="logo-icon" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <span class="logo-text">EcoTracker</span>
+    </div>
+    <button id="theme-toggle" class="theme-toggle-btn" title="Сменить тему" onclick="app.toggleTheme()">
+      <svg id="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <svg id="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="display:none">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+    <!-- Landing link (скрывается после входа) -->
+    <div id="landing-link-btn">
+      <a href="landing.html" class="header-landing-link">О сервисе</a>
+    </div>
+    <!-- User info -->
+    <div id="user-info" class="hidden">
+      <span id="welcome-message"></span>
+      <button id="logout-button">Выход</button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ TOAST ═══ -->
+<div id="message-box" class="alert-hidden" role="status" aria-live="polite"></div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div id="app">
+  <div class="page-decor page-decor-top" aria-hidden="true"></div>
+  <div class="page-decor page-decor-bottom" aria-hidden="true"></div>
+
+  <!-- ────────────────────────────────────────
+       AUTH VIEW
+  ──────────────────────────────────────── -->
+  <div id="auth-view">
+    <div class="auth-logo-wrap">
+      <div class="auth-logo-circle">
+        <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+          <path d="M20 36C20 36 4 26 4 14C4 7 11 3 15 5C18 6 19 10 20 13C21 10 22 6 25 5C29 3 36 7 36 14C36 26 20 36 20 36Z"
+            fill="url(#authLeaf)" opacity="0.85"/>
+          <line x1="20" y1="36" x2="20" y2="13" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M20 22C20 22 15 19 14 16" stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-linecap="round"/>
+          <path d="M20 28C20 28 25 25 26 22" stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="authLeaf" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#22c55e"/>
+              <stop offset="100%" stop-color="#14b8a6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <h1 id="auth-title">Вход в систему</h1>
+      <p style="font-size:0.8125rem;color:var(--c-text-muted);margin-top:0.25rem;">Отслеживайте свой экологический вклад</p>
+    </div>
+
+    <!-- Login -->
+    <form id="login-form" style="display:flex;flex-direction:column;gap:1rem;">
+      <div>
+        <label for="login-username" class="eco-label">Имя пользователя</label>
+        <input type="text" id="login-username" required placeholder="Введите имя..." autocomplete="username">
+      </div>
+      <div>
+        <label for="login-password" class="eco-label">Пароль</label>
+        <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button type="submit" class="neon-btn" style="margin-top:0.25rem;">Войти</button>
+    </form>
+
+    <!-- Register -->
+    <form id="register-form" class="hidden" style="flex-direction:column;gap:1rem;">
+      <div>
+        <label for="register-username" class="eco-label">Имя пользователя</label>
+        <input type="text" id="register-username" required placeholder="Придумайте имя..." autocomplete="username">
+      </div>
+      <div>
+        <label for="register-email" class="eco-label">Email</label>
+        <input type="email" id="register-email" required placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div>
+        <label for="register-password" class="eco-label">Пароль</label>
+        <input type="password" id="register-password" required minlength="6" placeholder="Минимум 6 символов" autocomplete="new-password">
+      </div>
+      <button type="submit" class="neon-btn" style="margin-top:0.25rem;">Зарегистрироваться</button>
+    </form>
+
+    <div class="eco-divider"></div>
+    <button id="toggle-auth-view" class="auth-toggle-btn">
+      Нет аккаунта? <strong>Зарегистрируйтесь</strong>
+    </button>
+  </div>
+
+  <!-- ────────────────────────────────────────
+       DASHBOARD VIEW
+  ──────────────────────────────────────── -->
+  <div id="dashboard-view" class="hidden">
+
+    <!-- Tabs -->
+    <div class="tabs-wrapper">
+      <button data-tab="record" class="tab-button active">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="tab-label">Записать</span>
+      </button>
+      <button data-tab="report" class="tab-button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        <span class="tab-label">Отчёт</span>
+      </button>
+      <button data-tab="methodology" class="tab-button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        <span class="tab-label">Методология</span>
+      </button>
+      <button data-tab="admin" id="admin-tab" class="tab-button hidden">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <span class="tab-label">Админ</span>
+      </button>
+      <button data-tab="ml" class="tab-button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="3"/></svg>
+        <span class="tab-label">AI анализ</span>
+      </button>
+      <button data-tab="profile" class="tab-button" id="profile-tab-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <span class="tab-label">Профиль</span>
+      </button>
+      <button data-tab="rating" class="tab-button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+        <span class="tab-label">Рейтинг</span>
+      </button>
+    </div>
+
+    <!-- ──── TAB: RECORD ──── -->
+    <div id="tab-record" class="tab-content glass-card" style="padding:1.75rem;">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="section-title-text">Записать Эко-Действие</h2>
+          <p class="section-subtitle">Каждый шаг имеет значение — зафиксируйте свой вклад</p>
+        </div>
+      </div>
+
+      <form id="record-form" style="display:flex;flex-direction:column;gap:1.125rem;">
+        <div>
+          <label for="action-id" class="eco-label">Эко-Действие</label>
+          <!-- Real select (hidden, controlled by JS) -->
+          <select id="action-id" required style="display:none;">
+            <option value="">Выберите действие...</option>
+          </select>
+          <!-- Custom select will be injected here by JS -->
+          <p id="action-description" style="font-size:0.8rem;color:var(--c-text-muted);margin-top:0.4rem;font-style:italic;min-height:1.2em;"></p>
+        </div>
+
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+          <div style="flex:1;min-width:130px;">
+            <label for="quantity" class="eco-label">Количество</label>
+            <input type="number" id="quantity" required min="1" step="0.01" placeholder="0">
+            <p id="quantity-unit" style="font-size:0.72rem;color:var(--c-text-faint);margin-top:0.3rem;">Ед. изм.: —</p>
+          </div>
+          <div style="flex:1;min-width:130px;">
+            <label for="record-date" class="eco-label">Дата</label>
+            <input type="date" id="record-date" required>
+          </div>
+        </div>
+
+        <button type="submit" class="neon-btn">✓&nbsp;&nbsp;Сохранить Запись</button>
+      </form>
+    </div>
+
+    <!-- ──── TAB: REPORT ──── -->
+    <div id="tab-report" class="tab-content hidden" style="flex-direction:column;gap:1.5rem;">
+
+      <!-- Stats + Chart -->
+      <div class="glass-card" style="padding:1.75rem;">
+        <div class="section-header">
+          <div class="section-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+          </div>
+          <div>
+            <h2 class="section-title-text">Экологический Отчёт</h2>
+            <p class="section-subtitle">Ваш вклад в защиту планеты</p>
+          </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="filter-bar">
+          <label>От:</label>
+          <input type="date" id="report-start-date">
+          <label>До:</label>
+          <input type="date" id="report-end-date">
+          <button id="apply-report-filter" class="neon-btn-small">Применить</button>
+        </div>
+
+        <!-- Stats row -->
+        <div style="display:flex;flex-wrap:wrap;gap:1.25rem;align-items:stretch;">
+          <div class="stat-card" style="flex:1;min-width:200px;">
+            <p class="stat-label">Предотвращённый выброс CO₂</p>
+            <p class="stat-value">
+              <span id="total-contribution">0.00</span>
+              <span class="stat-unit" id="contribution-unit">&nbsp;kg CO2e</span>
+            </p>
+            <p class="stat-sub">🌳 Эквивалент <strong><span id="tree-equivalent">0</span> деревьев</strong></p>
+          </div>
+          <div class="glass-card" style="flex:1;min-width:200px;max-width:280px;padding:1rem;position:relative;">
+            <canvas id="contribution-chart"></canvas>
+            <p id="no-data-msg" class="hidden" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:1.5rem;color:var(--c-text-faint);font-style:italic;font-size:0.875rem;">Нет данных за выбранный период</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="glass-card" style="padding:1.75rem;">
+        <div class="section-header">
+          <div class="section-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </div>
+          <div>
+            <h2 class="section-title-text">История Записей</h2>
+            <p class="section-subtitle">Все ваши эко-действия</p>
+          </div>
+        </div>
+        <div id="records-list" style="display:flex;flex-direction:column;gap:0.5rem;">
+          <p style="color:var(--c-text-faint);font-style:italic;font-size:0.875rem;">Загрузка записей...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ──── TAB: METHODOLOGY ──── -->
+    <div id="tab-methodology" class="tab-content hidden glass-card" style="padding:1.75rem;">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        </div>
+        <div>
+          <h2 class="section-title-text">Методология Расчётов</h2>
+          <p class="section-subtitle">Как мы считаем ваш вклад</p>
+        </div>
+      </div>
+
+      <p style="color:var(--c-text-mid);font-size:0.9375rem;line-height:1.75;margin-bottom:1.5rem;">
+        Eco-Tracker использует простой и прозрачный метод для оценки предотвращённого выброса
+        парниковых газов, выраженного в эквивалентах CO₂ (CO2e).
+      </p>
+
+      <!-- Formula -->
+      <h3 style="font-family:var(--font-display);font-size:1.15rem;font-style:italic;color:var(--c-teal-6);margin-bottom:0.75rem;">Формула расчёта</h3>
+      <div class="method-formula" style="margin-bottom:1.5rem;">
+        Вклад (kg CO2e) = Количество действия × Коэффициент выброса
+      </div>
+
+      <!-- Explanation bullets -->
+      <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.75rem;">
+        <div style="display:flex;gap:0.875rem;align-items:flex-start;">
+          <span style="width:26px;height:26px;border-radius:50%;background:rgba(34,197,94,0.14);border:1px solid rgba(34,197,94,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.72rem;font-weight:700;color:var(--c-green-6);">Q</span>
+          <div style="font-size:0.9rem;color:var(--c-text-mid);">
+            <strong style="color:var(--c-green-7);">Количество действия</strong> — вводите вы сами (кг бумаги, км на велосипеде и т.д.)
+          </div>
+        </div>
+        <div style="display:flex;gap:0.875rem;align-items:flex-start;">
+          <span style="width:26px;height:26px;border-radius:50%;background:rgba(20,184,166,0.14);border:1px solid rgba(20,184,166,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.72rem;font-weight:700;color:var(--c-teal-6);">K</span>
+          <div style="font-size:0.9rem;color:var(--c-text-mid);">
+            <strong style="color:var(--c-teal-6);">Коэффициент выброса</strong> — стандартизированное значение кг CO2e на единицу действия
+          </div>
+        </div>
+      </div>
+
+      <div class="eco-divider"></div>
+
+      <!-- Trees -->
+      <h3 style="font-family:var(--font-display);font-size:1.15rem;font-style:italic;color:var(--c-teal-6);margin:1.25rem 0 0.75rem;">Эквивалент деревьев</h3>
+      <p style="font-size:0.9rem;color:var(--c-text-mid);line-height:1.7;margin-bottom:0.875rem;">
+        Одно среднее дерево поглощает около <strong style="color:var(--c-green-6);">21.77 кг CO2e</strong> в год.
+        Мы делим ваш общий вклад на это значение для наглядного сравнения.
+      </p>
+      <div class="method-formula">Деревья = Вклад (kg CO2e) ÷ 21.77</div>
+
+      <div class="eco-divider"></div>
+
+      <!-- Examples -->
+      <h3 style="font-family:var(--font-display);font-size:1.15rem;font-style:italic;color:var(--c-teal-6);margin:1.25rem 0 0.875rem;">Примеры эко-действий</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:0.875rem;">
+        <div class="method-example-card">
+          <div style="font-size:1.4rem;margin-bottom:0.5rem;">♻️</div>
+          <div style="font-weight:700;color:var(--c-green-8);font-size:0.875rem;margin-bottom:0.2rem;">Сдача макулатуры</div>
+          <div style="font-size:0.78rem;color:var(--c-text-muted);">~1.0 кг CO2e / кг бумаги</div>
+        </div>
+        <div class="method-example-card">
+          <div style="font-size:1.4rem;margin-bottom:0.5rem;">🚲</div>
+          <div style="font-weight:700;color:var(--c-green-8);font-size:0.875rem;margin-bottom:0.2rem;">Езда на велосипеде</div>
+          <div style="font-size:0.78rem;color:var(--c-text-muted);">~0.15 кг CO2e / км</div>
+        </div>
+        <div class="method-example-card">
+          <div style="font-size:1.4rem;margin-bottom:0.5rem;">🌱</div>
+          <div style="font-weight:700;color:var(--c-green-8);font-size:0.875rem;margin-bottom:0.2rem;">Посадка деревьев</div>
+          <div style="font-size:0.78rem;color:var(--c-text-muted);">~21.77 кг CO2e / дерево</div>
+        </div>
+        <div class="method-example-card">
+          <div style="font-size:1.4rem;margin-bottom:0.5rem;">💡</div>
+          <div style="font-weight:700;color:var(--c-green-8);font-size:0.875rem;margin-bottom:0.2rem;">Экономия энергии</div>
+          <div style="font-size:0.78rem;color:var(--c-text-muted);">~0.5 кг CO2e / кВт·ч</div>
+        </div>
+      </div>
+
+      <div id="methodology-actions-list" style="margin-top:1.5rem;"></div>
+    </div>
+
+    <!-- ──── TAB: ADMIN ──── -->
+    <div id="admin-panel" class="tab-content hidden admin-panel-root">
+
+      <!-- Admin Sub-Nav -->
+      <nav class="admin-subnav">
+        <button class="admin-subnav-btn active" data-admin-tab="overview">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Обзор
+        </button>
+        <button class="admin-subnav-btn" data-admin-tab="users">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          Пользователи
+          <span id="admin-users-count" class="admin-badge">—</span>
+        </button>
+        <button class="admin-subnav-btn" data-admin-tab="actions">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Действия
+        </button>
+        <button class="admin-subnav-btn" data-admin-tab="activity">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Активность
+        </button>
+        <div style="flex:1;"></div>
+        <button id="admin-export-btn" class="admin-export-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Экспорт CSV
+        </button>
+      </nav>
+
+      <!-- PANEL: OVERVIEW -->
+      <div id="admin-pane-overview" class="admin-pane">
+        <!-- KPI Grid -->
+        <div class="admin-kpi-grid">
+          <div class="admin-kpi-card">
+            <div class="admin-kpi-icon" style="background:rgba(34,197,94,0.1);color:var(--c-green-6);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+            <div class="admin-kpi-body">
+              <span class="admin-kpi-val" id="kpi-total-users">—</span>
+              <span class="admin-kpi-label">Пользователей</span>
+            </div>
+            <span class="admin-kpi-delta" id="kpi-new-users-week"></span>
+          </div>
+          <div class="admin-kpi-card">
+            <div class="admin-kpi-icon" style="background:rgba(20,184,166,0.1);color:var(--c-teal-6);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            </div>
+            <div class="admin-kpi-body">
+              <span class="admin-kpi-val" id="kpi-total-records">—</span>
+              <span class="admin-kpi-label">Всего записей</span>
+            </div>
+          </div>
+          <div class="admin-kpi-card">
+            <div class="admin-kpi-icon" style="background:rgba(34,197,94,0.08);color:var(--c-green-7);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/></svg>
+            </div>
+            <div class="admin-kpi-body">
+              <span class="admin-kpi-val" id="kpi-total-co2">—</span>
+              <span class="admin-kpi-label">кг CO₂ суммарно</span>
+            </div>
+          </div>
+          <div class="admin-kpi-card">
+            <div class="admin-kpi-icon" style="background:rgba(251,191,36,0.1);color:#d97706;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="admin-kpi-body">
+              <span class="admin-kpi-val" id="kpi-active-today">—</span>
+              <span class="admin-kpi-label">Активны сегодня</span>
+            </div>
+            <span class="admin-kpi-delta" id="kpi-active-week" style="color:#d97706;"></span>
+          </div>
+          <div class="admin-kpi-card">
+            <div class="admin-kpi-icon" style="background:rgba(99,102,241,0.1);color:#818cf8;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div class="admin-kpi-body">
+              <span class="admin-kpi-val admin-kpi-val-sm" id="kpi-top-action">—</span>
+              <span class="admin-kpi-label">Топ действие</span>
+            </div>
+          </div>
+          <div class="admin-kpi-card">
+            <div class="admin-kpi-icon" style="background:rgba(244,63,94,0.08);color:#fb7185;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </div>
+            <div class="admin-kpi-body">
+              <span class="admin-kpi-val admin-kpi-val-sm" id="kpi-top-user">—</span>
+              <span class="admin-kpi-label">Самый активный</span>
+            </div>
+          </div>
+        </div>
+        <!-- Quick activity preview -->
+        <div class="glass-card" style="padding:1.5rem;margin-top:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+            <h3 class="section-title-text" style="font-size:0.9rem;">Последние события</h3>
+            <button class="admin-subnav-btn" data-admin-tab="activity" style="font-size:0.72rem;padding:0.3rem 0.75rem;">Все →</button>
+          </div>
+          <div id="admin-overview-activity"></div>
+        </div>
+      </div>
+
+      <!-- PANEL: USERS -->
+      <div id="admin-pane-users" class="admin-pane hidden">
+        <div class="glass-card" style="padding:1.5rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+            <div style="position:relative;flex:1;min-width:200px;">
+              <svg style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--c-text-muted);" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input type="text" id="user-search-query" placeholder="Поиск по имени или email..." style="padding-left:2.25rem;width:100%;">
+            </div>
+            <button id="admin-user-search-btn" class="neon-btn-small">Найти</button>
+            <button id="admin-users-load-all" class="neon-btn-small" style="background:rgba(34,197,94,0.1);color:var(--c-green-7);border-color:rgba(34,197,94,0.25);">Все пользователи</button>
+          </div>
+          <!-- Hidden form for backwards compat -->
+          <form id="admin-user-search-form" style="display:none;"></form>
+          <div id="admin-user-search-results" class="admin-users-table-wrap"></div>
+        </div>
+      </div>
+
+      <!-- PANEL: ACTIONS -->
+      <div id="admin-pane-actions" class="admin-pane hidden">
+        <div class="glass-card" style="padding:1.5rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <h3 class="section-title-text" style="font-size:0.9rem;">Добавить новое действие</h3>
+          </div>
+          <form id="admin-add-action-form" class="admin-form-row">
+            <input type="hidden" name="add-emission-unit" value="kg CO2e">
+            <div class="field field-lg">
+              <label class="eco-label">Название</label>
+              <input type="text" id="admin-action-name" name="add-name" placeholder="Название действия" required>
+            </div>
+            <div class="field field-md">
+              <label class="eco-label">Категория</label>
+              <input type="text" id="admin-action-category" name="add-category" placeholder="Транспорт, Отходы..." required>
+            </div>
+            <div class="field field-lg">
+              <label class="eco-label">Описание</label>
+              <input type="text" id="admin-action-description" name="add-description" placeholder="Краткое описание">
+            </div>
+            <div class="field field-sm">
+              <label class="eco-label">Ед. изм.</label>
+              <input type="text" id="admin-action-unit" name="add-unit-of-measure" placeholder="кг, км..." required>
+            </div>
+            <div class="field field-md">
+              <label class="eco-label">Коэффициент CO₂</label>
+              <input type="number" id="admin-action-coefficient" name="add-coefficient-value" step="0.001" placeholder="0.000" required>
+            </div>
+            <div class="field" style="flex:0;align-self:flex-end;">
+              <button type="submit" class="neon-btn-small" style="padding:0.65rem 1.125rem;">+ Добавить</button>
+            </div>
+          </form>
+        </div>
+        <div class="glass-card" style="padding:1.5rem;margin-top:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+            <h3 class="section-title-text" style="font-size:0.9rem;">Все действия</h3>
+          </div>
+          <div id="admin-actions-list" style="display:flex;flex-direction:column;gap:0.5rem;">
+            <p style="color:var(--c-text-faint);font-style:italic;font-size:0.875rem;">Загрузка...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: ACTIVITY -->
+      <div id="admin-pane-activity" class="admin-pane hidden">
+        <div class="glass-card" style="padding:1.5rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+            <h3 class="section-title-text" style="font-size:0.9rem;">Лента активности пользователей</h3>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <label class="eco-label" style="margin-bottom:0;white-space:nowrap;">Показать</label>
+              <select id="activity-limit" style="width:80px;padding:0.35rem 0.5rem;">
+                <option value="20">20</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+          <div id="admin-activity-list" style="display:flex;flex-direction:column;gap:0.375rem;"></div>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ──── TAB: ML AI ANALYSIS ──── -->
+    <div id="tab-ml" class="tab-content hidden glass-card" style="padding:1.75rem;">
+
+      <!-- Шапка -->
+      <div class="section-header" style="margin-bottom:1.5rem;">
+        <div class="section-icon" style="background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(20,184,166,0.12));border-color:rgba(99,102,241,0.20);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--c-teal-6)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9 9h1v6M14 9h1v6M9 12h6"/></svg>
+        </div>
+        <div>
+          <h2 class="section-title-text">AI Эко-Анализ</h2>
+          <p class="section-subtitle">Пройдите короткий опрос — AI определит ваш экологический профиль</p>
+        </div>
+        <div id="ml-status-badge" class="eco-badge" style="margin-left:auto;flex-shrink:0;display:none;gap:0.4rem;align-items:center;">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--c-green-5);display:inline-block;animation:mlPulse 2s ease-in-out infinite;"></span>
+          ML Online
+        </div>
+      </div>
+
+      <!-- Прогресс-бар -->
+      <div id="quiz-progress-wrap" style="margin-bottom:1.75rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+          <span id="quiz-step-label" style="font-size:0.78rem;font-weight:700;color:var(--c-text-muted);text-transform:uppercase;letter-spacing:.05em;">Шаг 1 из 8</span>
+          <span id="quiz-pct-label" style="font-size:0.78rem;font-weight:700;color:var(--c-green-6);">0%</span>
+        </div>
+        <div style="height:6px;background:rgba(22,163,74,0.12);border-radius:999px;overflow:hidden;">
+          <div id="quiz-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#14b8a6);border-radius:999px;transition:width .4s cubic-bezier(.16,1,.3,1);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:0.6rem;" id="quiz-dots"></div>
+      </div>
+
+      <!-- Контейнер шагов -->
+      <div id="quiz-steps-container"></div>
+
+      <!-- Навигация -->
+      <div id="quiz-nav" style="display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;gap:1rem;">
+        <button id="quiz-back-btn" onclick="app.quizBack()" style="display:none;padding:0.6rem 1.25rem;background:none;border:1.5px solid rgba(22,163,74,0.25);border-radius:var(--radius-full);color:var(--c-text-muted);font-size:0.875rem;font-weight:600;cursor:pointer;font-family:inherit;">
+          ← Назад
+        </button>
+        <div style="flex:1;"></div>
+        <button id="quiz-next-btn" onclick="app.quizNext()" style="padding:0.65rem 1.75rem;background:linear-gradient(135deg,var(--c-green-5),var(--c-teal-5));border:none;border-radius:var(--radius-full);color:#fff;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 3px 12px rgba(22,163,74,0.28);" disabled>
+          Далее →
+        </button>
+      </div>
+
+      <!-- Результат -->
+      <div id="ml-result" class="hidden" style="margin-top:1.5rem;"></div>
+
+    </div>
+
+
+    <!-- ──── TAB: PROFILE ──── -->
+    <div id="tab-profile" class="tab-content hidden" style="display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- Hero Card -->
+      <div class="glass-card profile-hero-card" style="padding:2rem 1.75rem;">
+        <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;">
+          <div id="profile-avatar" class="profile-avatar">??</div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.3rem;">
+              <h2 id="profile-username" class="section-title-text" style="margin:0;font-size:1.35rem;"></h2>
+              <span id="profile-role-badge" class="eco-badge" style="font-size:0.68rem;"></span>
+            </div>
+            <p id="profile-email" style="font-size:0.85rem;color:var(--c-text-mid);margin-bottom:0.5rem;"></p>
+            <p id="profile-since" style="font-size:0.75rem;color:var(--c-text-muted);"></p>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem;">
+            <div id="profile-co2-big" style="text-align:right;">
+              <span class="profile-stat-num" id="profile-total-co2">—</span>
+              <span style="font-size:0.72rem;color:var(--c-text-muted);display:block;margin-top:-2px;">кг CO₂ всего</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="profile-stats-grid">
+        <div class="profile-stat-card">
+          <svg class="profile-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span class="profile-stat-num" id="stat-total-records">—</span>
+          <span class="profile-stat-label">Всего записей</span>
+        </div>
+        <div class="profile-stat-card">
+          <svg class="profile-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          <span class="profile-stat-num" id="stat-last30">—</span>
+          <span class="profile-stat-label">За 30 дней</span>
+        </div>
+        <div class="profile-stat-card">
+          <svg class="profile-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 1 7 7c0 4-7 13-7 13S5 13 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <span class="profile-stat-num" id="stat-top-cat" style="font-size:0.85rem;">—</span>
+          <span class="profile-stat-label">Топ категория</span>
+        </div>
+        <div class="profile-stat-card">
+          <svg class="profile-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span class="profile-stat-num" id="stat-top-action" style="font-size:0.78rem;line-height:1.2;">—</span>
+          <span class="profile-stat-label">Любимое действие</span>
+        </div>
+      </div>
+
+      <!-- Two column: Security + 2FA -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
+
+        <!-- Change Password -->
+        <div class="glass-card" style="padding:1.5rem;">
+          <div class="section-header" style="margin-bottom:1.25rem;">
+            <div class="section-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c-green-6)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div>
+              <h3 class="section-title-text" style="font-size:0.95rem;">Смена пароля</h3>
+              <p class="section-subtitle" style="font-size:0.72rem;">Минимум 6 символов</p>
+            </div>
+          </div>
+          <form id="change-password-form" style="display:flex;flex-direction:column;gap:0.75rem;">
+            <div>
+              <label class="eco-label">Текущий пароль</label>
+              <input type="password" id="cp-current" placeholder="Введите текущий пароль" required>
+            </div>
+            <div>
+              <label class="eco-label">Новый пароль</label>
+              <input type="password" id="cp-new" placeholder="Минимум 6 символов" required>
+            </div>
+            <div>
+              <label class="eco-label">Подтверждение</label>
+              <input type="password" id="cp-confirm" placeholder="Повторите новый пароль" required>
+            </div>
+            <div id="cp-strength-bar-wrap" class="hidden" style="margin-top:-0.1rem;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                <span style="font-size:0.68rem;color:var(--c-text-muted);">Надёжность пароля</span>
+                <span id="cp-strength-label" style="font-size:0.68rem;font-weight:700;"></span>
+              </div>
+              <div style="height:5px;background:rgba(0,0,0,0.08);border-radius:3px;overflow:hidden;">
+                <div id="cp-strength-fill" style="height:100%;border-radius:3px;transition:width .3s,background .3s;"></div>
+              </div>
+            </div>
+            <button type="submit" class="neon-btn" style="margin-top:0.25rem;padding:0.65rem;">
+              Сохранить пароль
+            </button>
+          </form>
+        </div>
+
+        <!-- 2FA -->
+        <div class="glass-card profile-2fa-card" style="padding:1.5rem;position:relative;overflow:hidden;">
+          <div class="profile-2fa-glow"></div>
+          <div class="section-header" style="margin-bottom:1.25rem;">
+            <div class="section-icon" style="background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.2);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <h3 class="section-title-text" style="font-size:0.95rem;">Двухфакторная аутентификация</h3>
+              <p class="section-subtitle" style="font-size:0.72rem;">Дополнительная защита</p>
+            </div>
+            <span class="profile-soon-badge">Скоро</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:0.875rem;opacity:0.55;pointer-events:none;">
+            <div class="profile-2fa-method">
+              <div class="profile-2fa-icon" style="background:rgba(34,197,94,0.1);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-green-6)" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+              </div>
+              <div>
+                <div style="font-size:0.82rem;font-weight:700;color:var(--c-text);">Authenticator App</div>
+                <div style="font-size:0.72rem;color:var(--c-text-muted);">Google Authenticator, Authy</div>
+              </div>
+              <div class="profile-2fa-toggle"></div>
+            </div>
+            <div class="profile-2fa-method">
+              <div class="profile-2fa-icon" style="background:rgba(20,184,166,0.1);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-teal-6)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div>
+                <div style="font-size:0.82rem;font-weight:700;color:var(--c-text);">Email-код</div>
+                <div style="font-size:0.72rem;color:var(--c-text-muted);">Код на вашу почту</div>
+              </div>
+              <div class="profile-2fa-toggle"></div>
+            </div>
+            <div class="profile-2fa-method">
+              <div class="profile-2fa-icon" style="background:rgba(139,92,246,0.1);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 16a2 2 0 0 1 .42.92z"/></svg>
+              </div>
+              <div>
+                <div style="font-size:0.82rem;font-weight:700;color:var(--c-text);">SMS-код</div>
+                <div style="font-size:0.72rem;color:var(--c-text-muted);">Код на ваш телефон</div>
+              </div>
+              <div class="profile-2fa-toggle"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sessions & Danger zone -->
+      <div class="glass-card" style="padding:1.5rem;">
+        <div class="section-header" style="margin-bottom:1rem;">
+          <div class="section-icon" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.18);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div>
+            <h3 class="section-title-text" style="font-size:0.95rem;">Управление сессией</h3>
+            <p class="section-subtitle" style="font-size:0.72rem;">Ваша активная сессия</p>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+          <div style="display:flex;align-items:center;gap:0.875rem;">
+            <div style="width:36px;height:36px;border-radius:var(--radius-md);background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);display:flex;align-items:center;justify-content:center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-green-6)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            </div>
+            <div>
+              <div style="font-size:0.82rem;font-weight:700;color:var(--c-text);">Текущая сессия</div>
+              <div id="profile-session-info" style="font-size:0.72rem;color:var(--c-text-muted);">Активна сейчас &bull; Браузер</div>
+            </div>
+            <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.68rem;font-weight:700;padding:3px 8px;border-radius:var(--radius-full);background:rgba(34,197,94,0.12);color:var(--c-green-6);border:1px solid rgba(34,197,94,0.2);">
+              <span style="width:5px;height:5px;border-radius:50%;background:var(--c-green-5);"></span>Активна
+            </span>
+          </div>
+          <button onclick="app.logout()" style="padding:0.55rem 1.1rem;border-radius:var(--radius-md);background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.22);color:#f87171;font-size:0.8rem;font-weight:700;cursor:pointer;">
+            Выйти из аккаунта
+          </button>
+        </div>
+      </div>
+
+    </div>
+    <div id="tab-rating" class="hidden"></div>
+
+  </div><!-- /dashboard-view -->
+</div><!-- /app -->
+
+<!-- ═══ EDIT MODAL ═══ -->
+<div id="edit-modal" class="hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span id="modal-action-name" class="modal-title">Изменить коэффициент</span>
+      <button id="modal-close" class="modal-close-btn" aria-label="Закрыть">×</button>
+    </div>
+    <form id="admin-edit-coefficient-form" style="display:flex;flex-direction:column;gap:1rem;">
+      <input type="hidden" id="modal-action-id">
+      <div>
+        <label class="eco-label">ID Коэффициента</label>
+        <input type="number" id="modal-coefficient-id" required>
+      </div>
+      <div>
+        <label class="eco-label">Новое значение</label>
+        <input type="number" id="modal-coefficient-value" step="0.001" required>
+      </div>
+      <button type="submit" class="neon-btn">Сохранить изменения</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="main.js"></script>
+
+<script>
+// ═══ Custom Select Dropdown ═══
+(function() {
+  function initCustomSelect() {
+    const realSelect = document.getElementById('action-id');
+    if (!realSelect || realSelect._csInit) return;
+    realSelect._csInit = true;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'cs-wrapper';
+    realSelect.parentNode.insertBefore(wrapper, realSelect);
+    wrapper.appendChild(realSelect);
+
+    const trigger = document.createElement('div');
+    trigger.className = 'cs-trigger';
+    trigger.setAttribute('tabindex', '0');
+    trigger.setAttribute('role', 'button');
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.innerHTML = `<span class="cs-value placeholder">Выберите действие...</span>
+      <svg class="cs-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>`;
+
+    const panel = document.createElement('div');
+    panel.className = 'cs-panel';
+    panel.setAttribute('role', 'listbox');
+
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(panel);
+
+    function buildItems() {
+      panel.innerHTML = '';
+      const opts = Array.from(realSelect.options).filter(o => o.value);
+      if (!opts.length) {
+        panel.innerHTML = '<div class="cs-empty">Нет доступных действий</div>';
+        return;
+      }
+      opts.forEach(opt => {
+        const item = document.createElement('div');
+        item.className = 'cs-item' + (opt.value === realSelect.value ? ' selected' : '');
+        item.setAttribute('role', 'option');
+        item.dataset.value = opt.value;
+        item.innerHTML = `<span class="cs-item-name">${opt.textContent}</span>${opt.dataset.unit ? `<span class="cs-item-unit">${opt.dataset.unit}</span>` : ''}`;
+        item.addEventListener('mousedown', e => {
+          e.preventDefault();
+          realSelect.value = opt.value;
+          realSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          syncTrigger();
+          close();
+          panel.querySelectorAll('.cs-item').forEach(i => i.classList.toggle('selected', i.dataset.value === opt.value));
+        });
+        panel.appendChild(item);
+      });
+    }
+
+    function syncTrigger() {
+      const sel = realSelect.selectedOptions[0];
+      const v = trigger.querySelector('.cs-value');
+      if (sel && sel.value) { v.textContent = sel.textContent; v.classList.remove('placeholder'); }
+      else { v.textContent = 'Выберите действие...'; v.classList.add('placeholder'); }
+    }
+
+    function open() { buildItems(); panel.classList.add('open'); wrapper.classList.add('open'); }
+    function close() { panel.classList.remove('open'); wrapper.classList.remove('open'); }
+
+    trigger.addEventListener('click', e => { e.stopPropagation(); panel.classList.contains('open') ? close() : open(); });
+    trigger.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+      if (e.key === 'Escape') close();
+    });
+    document.addEventListener('click', e => { if (!wrapper.contains(e.target)) close(); });
+
+    // Watch for options added by JS
+    new MutationObserver(() => { if (panel.classList.contains('open')) buildItems(); syncTrigger(); })
+      .observe(realSelect, { childList: true });
+
+    realSelect.addEventListener('change', syncTrigger);
+  }
+
+  // Init after main.js runs
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initCustomSelect, 80));
+  } else {
+    setTimeout(initCustomSelect, 80);
+  }
+  window._initCustomSelect = initCustomSelect;
+})();
+</script>
+
+
+<script>
+// ─── Синхронизация с landing.html: кнопка "О сервисе" ────────
+(function(){
+  function syncLandingBtn() {
+    var userInfo = document.getElementById('user-info');
+    var landingBtn = document.getElementById('landing-link-btn');
+    if (!userInfo || !landingBtn) return;
+    function update() {
+      var loggedIn = !userInfo.classList.contains('hidden');
+      landingBtn.style.display = loggedIn ? 'none' : 'flex';
+    }
+    update();
+    new MutationObserver(update).observe(userInfo, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', syncLandingBtn);
+  } else {
+    syncLandingBtn();
+  }
+})();
+</script>
+</body>
+</html>

@@ -233,6 +233,8 @@ class AppContext {
         this.bindEvents();
         this.applyTheme();
         document.getElementById('record-date').valueAsDate = new Date();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('record-date').setAttribute('max', today);
         this.checkAuthStatus();
     }
 
@@ -709,22 +711,33 @@ class AppContext {
         if (res.ok) {
             this.showMessage('✅ ' + res.data.message, 'success');
             this._showSuccessAnimation();
-            this.elements.recordForm.reset();
-            this.elements.quantityUnit.textContent = 'Ед. изм.: -';
-            this.elements.actionDescription.textContent = '';
+
+            // ── FIX 1: запоминаем выбранное действие ДО сброса ──
+            const savedActionId = this.elements.actionsSelect.value;
+
+            // сбрасываем только quantity, но НЕ весь select
+            document.getElementById('quantity').value = '';
             document.getElementById('record-date').valueAsDate = new Date();
+
+            // восстанавливаем выбранное действие
+            this.elements.actionsSelect.value = savedActionId;
+            this.elements.actionsSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            // синхронизируем кастомный дропдаун
+            if (window._initCustomSelect) {
+                const realSelect = this.elements.actionsSelect;
+                realSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
             this.loadRecordsAndReport();
-        } 
+        }
         if (res.data && res.data.newAchievements && res.data.newAchievements.length > 0) {
             res.data.newAchievements.forEach(ach => {
                 setTimeout(() => this.showAchievementToast(ach), 600);
             });
-        }
-        else {
+        } else if (!res.ok) {
             this.showMessage(res.data.message, 'error');
         }
     }
-
     async handleAdminAddAction(e) {
         e.preventDefault();
         const f = e.target;

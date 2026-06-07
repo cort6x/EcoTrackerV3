@@ -188,6 +188,11 @@
       </button>
     </div>
 
+      <!-- scroll hint для мобильных -->
+      <div class="tabs-scroll-hint" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+
     <!-- ──── TAB: RECORD ──── -->
     <div id="tab-record" class="tab-content glass-card" style="padding:1.75rem;">
       <div class="section-header">
@@ -254,8 +259,8 @@
         </div>
 
         <!-- Stats row -->
-        <div style="display:flex;flex-wrap:wrap;gap:1.25rem;align-items:stretch;">
-          <div class="stat-card" style="flex:1;min-width:200px;">
+        <div class="report-stats-row" style="display:flex;flex-wrap:wrap;gap:1.25rem;align-items:stretch;">
+          <div class="stat-card stat-co2-card" style="flex:1;min-width:200px;">
             <p class="stat-label">Предотвращённый выброс CO₂</p>
             <p class="stat-value">
               <span id="total-contribution">0.00</span>
@@ -263,7 +268,7 @@
             </p>
             <p class="stat-sub">🌳 Эквивалент <strong><span id="tree-equivalent">0</span> деревьев</strong></p>
           </div>
-          <div class="glass-card" style="flex:1;min-width:200px;max-width:280px;padding:1rem;position:relative;">
+          <div class="glass-card chart-container-wrap" style="flex:1;min-width:200px;max-width:280px;padding:1rem;position:relative;">
             <canvas id="contribution-chart"></canvas>
             <p id="no-data-msg" class="hidden" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:1.5rem;color:var(--c-text-faint);font-style:italic;font-size:0.875rem;">Нет данных за выбранный период</p>
           </div>
@@ -908,5 +913,95 @@
   }
 })();
 </script>
+
+
+
+<script>
+// ─── Mobile UX patches ───────────────────────────────────────────
+(function(){
+
+  /* 1. Tabs scroll hint — fade out when scrolled to end */
+  function initTabsScrollHint() {
+    var wrapper = document.querySelector('.tabs-wrapper');
+    var hint = document.querySelector('.tabs-scroll-hint');
+    if (!wrapper) return;
+
+    function checkScroll() {
+      var atEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 8;
+      var noScroll = wrapper.scrollWidth <= wrapper.clientWidth + 2;
+      wrapper.classList.toggle('at-end', atEnd);
+      wrapper.classList.toggle('no-scroll', noScroll);
+      if (hint) hint.style.display = (atEnd || noScroll) ? 'none' : '';
+    }
+
+    wrapper.addEventListener('scroll', checkScroll, { passive: true });
+    window.addEventListener('resize', checkScroll);
+    checkScroll();
+  }
+
+  /* 2. Chart.js — resize при переключении на вкладку Report */
+  function patchChartResize() {
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-tab]');
+      if (!btn || btn.dataset.tab !== 'report') return;
+      [60, 200, 450].forEach(function(ms) {
+        setTimeout(function() {
+          if (!window.Chart) return;
+          Object.values(Chart.instances || {}).forEach(function(c) {
+            try { c.resize(); } catch(err) {}
+          });
+          // Дополнительно: убираем жёсткие размеры с canvas если есть
+          var canvas = document.getElementById('contribution-chart');
+          if (canvas) {
+            canvas.style.removeProperty('width');
+            canvas.style.removeProperty('height');
+          }
+        }, ms);
+      });
+    });
+
+    /* Resize при повороте/изменении размера */
+    var resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        if (!window.Chart) return;
+        Object.values(Chart.instances || {}).forEach(function(c) {
+          try { c.resize(); } catch(err) {}
+        });
+      }, 200);
+    }, { passive: true });
+  }
+
+  /* 3. Hint — небольшой bounce при первом появлении вкладок */
+  function animateTabsHint() {
+    var wrapper = document.querySelector('.tabs-wrapper');
+    if (!wrapper) return;
+    // Скроллим чуть вправо и обратно через 1s — показываем что можно скроллить
+    if (wrapper.scrollWidth > wrapper.clientWidth + 10) {
+      setTimeout(function() {
+        wrapper.scrollTo({ left: 40, behavior: 'smooth' });
+        setTimeout(function() {
+          wrapper.scrollTo({ left: 0, behavior: 'smooth' });
+        }, 600);
+      }, 1200);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      initTabsScrollHint();
+      patchChartResize();
+      animateTabsHint();
+    });
+  } else {
+    initTabsScrollHint();
+    patchChartResize();
+    animateTabsHint();
+  }
+
+})();
+</script>
+
 </body>
 </html>

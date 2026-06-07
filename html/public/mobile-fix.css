@@ -1,180 +1,407 @@
 /* ================================================================
-   ECO-TRACKER — MOBILE RESPONSIVE PATCH (mobile-fix.css)
-   Подключается ПОСЛЕ main-4.css. Ничего не ломает на desktop.
-   Охватывает: 480px, 560px, 640px, 768px, 900px breakpoints.
+   ECO-TRACKER — MOBILE RESPONSIVE FIX  (mobile-fix.css)
+   Подключается ПОСЛЕ main.css. Только адаптив — дизайн не меняем.
+   Breakpoints: 900 · 768 · 640 · 560 · 480 · 380
    ================================================================ */
 
-/* ── 1. Meta viewport safety ─────────────────────────────────── */
+/* ── 1. Базовые сбросы ───────────────────────────────────────── */
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
-
-/* ── 2. Body / overflow ──────────────────────────────────────── */
 body {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
-/* ── 3. Header ───────────────────────────────────────────────── */
-#app-header {
-  width: 100%;
-  min-height: 56px;
+/* Запрещаем горизонтальный скролл от фоновых элементов */
+#bg-blobs, #ambient-grid, .page-decor, .ambient-orb {
+  max-width: 100vw;
+  overflow: hidden;
 }
 
-/* ── 4. Core mobile styles (@max 900px) ─────────────────────── */
+/* ── 2. Tabs — скролл + визуальный hint ──────────────────────── */
+
+/* Обёртка с горизонтальным скроллом */
+.tabs-wrapper {
+  max-width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Контейнер вокруг tabs-wrapper — нужен для hint */
+.tabs-scroll-hint {
+  display: none; /* на десктопе скрыт */
+}
+
+@media (max-width: 900px) {
+  /* Кнопки табов — не переносятся, скроллятся горизонтально */
+  .tabs-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap !important;
+    gap: 0.2rem;
+    padding: 0.3rem;
+    /* Градиент справа — намёк на скролл */
+    -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+    mask-image: linear-gradient(to right, black 80%, transparent 100%);
+  }
+  .tabs-wrapper::-webkit-scrollbar { display: none; }
+
+  /* Когда дотянули до конца — убираем fade */
+  .tabs-wrapper.scrolled-end {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .tab-button {
+    flex: 0 0 auto;   /* НЕ сжимаются */
+    white-space: nowrap;
+    min-height: 44px;
+    padding: 0.55rem 0.875rem;
+    font-size: 0.8rem;
+  }
+
+  /* Стрелка-hint справа от табов */
+  .tabs-scroll-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 36px;
+    background: linear-gradient(to right, transparent, rgba(237,250,243,0.95) 60%);
+    color: var(--c-green-6, #16a34a);
+    pointer-events: none;
+    z-index: 5;
+    border-radius: 0 var(--radius-lg, 1.25rem) var(--radius-lg, 1.25rem) 0;
+    animation: hint-pulse 2s ease-in-out infinite;
+  }
+  /* Прячем hint если таб-контейнер уже докручен */
+  .tabs-wrapper.scrolled-end ~ .tabs-scroll-hint {
+    display: none;
+  }
+
+  @keyframes hint-pulse {
+    0%, 100% { opacity: 1; transform: translateX(0); }
+    50% { opacity: 0.5; transform: translateX(3px); }
+  }
+}
+
+@media (max-width: 640px) {
+  .tabs-wrapper {
+    padding: 0.25rem;
+    border-radius: 1rem;
+    gap: 0.15rem;
+  }
+  .tab-button {
+    font-size: 0.72rem;
+    padding: 0.5rem 0.65rem;
+    min-height: 42px;
+    gap: 0.2rem;
+  }
+  .tab-button svg {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .tab-button {
+    font-size: 0.68rem;
+    padding: 0.45rem 0.55rem;
+  }
+  .tabs-scroll-hint {
+    width: 28px;
+  }
+}
+
+/* JS — добавляем класс scrolled-end когда дотянули */
+
+/* ── 3. Header ───────────────────────────────────────────────── */
 @media (max-width: 900px) {
   #app-header {
     position: sticky;
     top: 0;
     z-index: 100;
+    width: 100%;
   }
   .header-inner {
-    padding: 0 1rem;
     height: auto;
     min-height: 56px;
+    padding: 0.5rem 1rem;
     flex-wrap: wrap;
     gap: 0.5rem;
-    padding-block: 0.6rem;
   }
-  .logo-mark {
-    flex-shrink: 0;
-  }
+  .logo-mark { flex-shrink: 0; }
   #user-info {
     width: 100%;
     justify-content: space-between;
     align-items: center;
-    gap: 0.5rem;
   }
   #welcome-message {
-    max-width: calc(100vw - 130px);
+    max-width: calc(100vw - 140px);
     font-size: 0.78rem;
-  }
-
-  /* Dashboard container */
-  #dashboard-view {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding-inline: 0;
-  }
-
-  /* Cards */
-  .glass-card {
-    border-radius: 1rem !important;
-  }
-
-  /* App padding */
-  #app {
-    padding: 0.75rem 0.5rem 3rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
-/* ── 5. Tablet (@max 768px) ─────────────────────────────────── */
-@media (max-width: 768px) {
-  #app {
-    padding: 0.5rem 0.5rem 4rem;
-  }
-
-  /* Tabs */
-  .tabs-wrapper {
-    gap: 0.2rem;
-    padding: 0.3rem;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    flex-wrap: nowrap;
-  }
-  .tabs-wrapper::-webkit-scrollbar { display: none; }
-
-  .tab-button {
+@media (max-width: 640px) {
+  .header-inner { padding: 0.4rem 0.75rem; gap: 0.375rem; }
+  .logo-text { font-size: 1rem; }
+  .logo-icon { width: 28px; height: 28px; }
+  #logout-button {
     font-size: 0.75rem;
-    padding: 0.55rem 0.6rem;
-    gap: 0.25rem;
+    padding: 0.4rem 0.7rem;
+    min-height: 38px;
     white-space: nowrap;
-    flex-shrink: 0;
-    min-height: 44px;
   }
-  .tab-button .tab-label {
-    display: inline;
-  }
+}
 
-  /* Glass cards */
-  .glass-card {
-    padding: 1.125rem !important;
-    border-radius: 1rem !important;
-  }
+@media (max-width: 480px) {
+  #welcome-message { display: none; } /* слишком мало места */
+  .header-inner { padding: 0.4rem 0.5rem; }
+}
 
-  /* Section header */
+/* ── 4. App main container ───────────────────────────────────── */
+@media (max-width: 900px) {
+  #app { padding: 0.75rem 0.5rem 3rem; }
+  #dashboard-view {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+@media (max-width: 640px) {
+  #app { padding: 0.5rem 0.375rem 4rem; }
+}
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 768px) {
+    #app { padding-bottom: calc(3.5rem + env(safe-area-inset-bottom)); }
+  }
+}
+
+/* ── 5. Glass cards ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .glass-card { border-radius: 1rem !important; }
+}
+@media (max-width: 640px) {
+  .glass-card { padding: 1rem !important; border-radius: 1rem !important; }
+}
+@media (max-width: 480px) {
+  .glass-card { padding: 0.875rem !important; border-radius: 0.875rem !important; }
+}
+
+/* ── 6. Section header ───────────────────────────────────────── */
+@media (max-width: 768px) {
   .section-header {
     gap: 0.625rem;
     padding-bottom: 0.875rem;
     margin-bottom: 1rem;
     flex-wrap: wrap;
   }
-  .section-icon {
-    width: 38px;
-    height: 38px;
-    flex-shrink: 0;
-  }
-  .section-title-text {
-    font-size: 1.05rem !important;
-    line-height: 1.2;
-  }
-  .section-subtitle {
-    font-size: 0.75rem;
-  }
+  .section-icon { width: 38px; height: 38px; flex-shrink: 0; }
+  .section-title-text { font-size: 1.05rem !important; }
+  .section-subtitle { font-size: 0.75rem; }
+}
+@media (max-width: 480px) {
+  .section-icon { width: 32px; height: 32px; }
+  .section-title-text { font-size: 0.95rem !important; }
+}
 
-  /* Stat card */
-  .stat-value { font-size: 2.25rem; }
+/* ── 7. Auth view ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  #auth-view {
+    padding: 1.5rem 1.125rem;
+    border-radius: 1.25rem;
+    width: calc(100% - 0.75rem) !important;
+  }
+}
+@media (max-width: 480px) {
+  #auth-view {
+    padding: 1.25rem 0.875rem;
+    border-radius: 1rem;
+    width: calc(100% - 0.5rem) !important;
+  }
+}
 
-  /* Filter bar */
+/* ── 8. REPORT TAB — Stats row + CHART ──────────────────────── */
+
+/* На мобильных stats row переходит в колонку */
+@media (max-width: 640px) {
+  .report-stats-row {
+    flex-direction: column !important;
+    gap: 0.875rem !important;
+  }
+  .stat-co2-card {
+    flex: unset !important;
+    min-width: unset !important;
+    width: 100% !important;
+  }
+  .chart-container-wrap {
+    flex: unset !important;
+    min-width: unset !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    /* Квадратный контейнер для donut */
+    aspect-ratio: 1 / 1;
+    max-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+  .chart-container-wrap canvas {
+    max-width: 220px !important;
+    max-height: 220px !important;
+    width: 100% !important;
+    height: auto !important;
+    display: block;
+    margin: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-container-wrap {
+    max-height: 220px;
+  }
+  .chart-container-wrap canvas {
+    max-width: 180px !important;
+    max-height: 180px !important;
+  }
+}
+
+/* Stat card big number */
+@media (max-width: 768px) { .stat-value { font-size: 2.25rem; } }
+@media (max-width: 640px) { .stat-value { font-size: 2rem; } }
+@media (max-width: 480px) { .stat-value { font-size: 1.75rem; } }
+
+/* ── 9. Filter bar ───────────────────────────────────────────── */
+@media (max-width: 640px) {
   .filter-bar {
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
   }
   .filter-bar label {
-    flex-shrink: 0;
+    font-size: 0.7rem;
+    margin-bottom: -0.25rem;
   }
   .filter-bar input[type="date"] {
-    min-width: unset;
     width: 100%;
+    min-width: unset;
   }
-
-  /* Record form — стек в одну колонку */
-  #record-form {
-    gap: 0.75rem;
+  .filter-bar #apply-report-filter {
+    align-self: flex-start;
+    min-height: 40px;
   }
+}
 
-  /* Chart — не обрезать */
-  #contribution-chart,
-  canvas {
-    max-width: 100%;
-    height: auto !important;
+/* ── 10. Record items (история) ──────────────────────────────── */
+@media (max-width: 640px) {
+  .record-item {
+    padding: 0.75rem;
+    gap: 0.5rem;
   }
+  .record-action-name { font-size: 0.85rem; }
+  .record-meta { font-size: 0.72rem; }
+  .record-value { font-size: 0.875rem; white-space: nowrap; }
+}
 
-  /* Report stats grid — 1 col on mobile */
-  .stat-card { margin-bottom: 0; }
+/* ── 11. Inline flex с min-width:200px → колонка на мобиле ───── */
+@media (max-width: 560px) {
+  div[style*="min-width:200px"],
+  div[style*="min-width: 200px"] {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+    min-width: unset !important;
+  }
+  div[style*="min-width:130px"],
+  div[style*="min-width: 130px"] {
+    flex: 1 1 calc(50% - 0.5rem) !important;
+    min-width: unset !important;
+  }
+}
 
-  /* Methodology grid */
-  .method-grid {
+/* ── 12. Inline grid 1fr 1fr → 1fr на мобиле ────────────────── */
+@media (max-width: 560px) {
+  div[style*="grid-template-columns:1fr 1fr"],
+  div[style*="grid-template-columns: 1fr 1fr"] {
     grid-template-columns: 1fr !important;
   }
+}
 
-  /* Profile hero flex → stack */
-  .profile-hero-content {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 1rem !important;
+/* ── 13. Auto-fill minmax(185px) → 2 col / 1 col ────────────── */
+@media (max-width: 640px) {
+  div[style*="minmax(185px,1fr)"],
+  div[style*="minmax(185px, 1fr)"] {
+    grid-template-columns: 1fr 1fr !important;
   }
-
-  /* ML grid */
-  .ml-grid-3,
-  .ml-grid-2 {
+}
+@media (max-width: 400px) {
+  div[style*="minmax(185px,1fr)"],
+  div[style*="minmax(185px, 1fr)"] {
     grid-template-columns: 1fr !important;
   }
+}
 
-  /* Admin table → card layout */
+/* ── 14. Profile stats grid ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .profile-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 480px) {
+  .profile-stats-grid { grid-template-columns: 1fr !important; }
+  .profile-avatar { width: 56px; height: 56px; font-size: 1.25rem; }
+  .profile-stat-num { font-size: 1.2rem; }
+}
+
+/* ── 15. Admin KPI grid ──────────────────────────────────────── */
+@media (max-width: 900px) {
+  .admin-kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 480px) {
+  .admin-kpi-grid { grid-template-columns: 1fr !important; }
+  .admin-kpi-val { font-size: 1.3rem; }
+  .admin-kpi-label { font-size: 0.7rem; }
+  .admin-kpi-icon { width: 34px; height: 34px; }
+  .admin-kpi-card { padding: 0.875rem 0.75rem; }
+}
+
+/* ── 16. Admin form row + subnav ─────────────────────────────── */
+@media (max-width: 768px) {
+  .admin-form-row {
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 1rem;
+  }
+  .admin-form-row .field-sm,
+  .admin-form-row .field-md,
+  .admin-form-row .field-lg {
+    flex: auto !important;
+    width: 100% !important;
+  }
+  .admin-subnav {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding: 0.35rem;
+    border-radius: 1rem;
+  }
+  .admin-subnav-btn,
+  .admin-export-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.6rem;
+    min-height: 42px;
+  }
+}
+
+/* ── 17. Admin table → card view ─────────────────────────────── */
+@media (max-width: 768px) {
   .admin-table thead { display: none; }
   .admin-table,
   .admin-table tbody,
@@ -203,151 +430,22 @@ body {
     color: var(--c-text-muted);
     font-weight: 700;
   }
-
-  /* Admin form row */
-  .admin-form-row {
-    flex-direction: column;
-  }
-  .admin-form-row .field-sm,
-  .admin-form-row .field-md,
-  .admin-form-row .field-lg {
-    flex: auto;
-    width: 100%;
-  }
-
-  /* Activity row */
-  .activity-row {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.35rem 0.6rem;
-    align-items: center;
-  }
-  .activity-cat,
-  .activity-co2,
-  .activity-date {
-    margin-left: 1.35rem;
-  }
-
-  /* Rating table */
-  .rating-table {
-    font-size: 0.8rem;
-  }
-  .rating-table th,
-  .rating-table td {
-    padding: 0.5rem 0.4rem;
-  }
+  .admin-table tbody td:nth-child(1)::before { content: 'Имя'; }
+  .admin-table tbody td:nth-child(2)::before { content: 'Email'; }
+  .admin-table tbody td:nth-child(3)::before { content: 'Роль'; }
+  .admin-table tbody td:nth-child(4)::before { content: 'Статус'; }
+  .admin-table tbody td:nth-child(5)::before { content: 'Рег.'; }
+  .admin-table tbody td:nth-child(6)::before { content: 'Действия'; }
 }
 
-/* ── 6. Small mobile (@max 640px) ───────────────────────────── */
+/* ── 18. ML grid ─────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  /* Global font scale */
-  body { font-size: 14px; }
-
-  /* Header */
-  #app-header {
-    min-height: 52px;
-  }
-  .header-inner {
-    padding: 0.5rem 0.75rem;
-    gap: 0.4rem;
-  }
-  .logo-text { font-size: 1rem; }
-  .logo-icon { width: 28px; height: 28px; }
-
-  #welcome-message {
-    font-size: 0.75rem;
-    max-width: calc(100vw - 100px);
-  }
-  #logout-button {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.7rem;
-    min-height: 36px;
-    white-space: nowrap;
-  }
-
-  /* Tabs */
-  .tabs-wrapper {
-    padding: 0.25rem;
-    border-radius: 0.875rem;
-    gap: 0.15rem;
-  }
-  .tab-button {
-    font-size: 0.7rem;
-    padding: 0.5rem 0.5rem;
-    min-height: 40px;
-    gap: 0.2rem;
-  }
-
-  /* Glass card padding */
-  .glass-card {
-    padding: 0.875rem !important;
-    border-radius: 0.875rem !important;
-  }
-
-  /* Section header */
-  .section-icon {
-    width: 34px;
-    height: 34px;
-  }
-  .section-title-text {
-    font-size: 0.95rem !important;
-  }
-
-  /* Auth */
-  #auth-view {
-    padding: 1.5rem 1rem;
-    border-radius: 1.25rem;
-  }
-
-  /* Stat card big number */
-  .stat-value { font-size: 1.875rem; }
-
-  /* Profile stats grid */
-  .profile-stats-grid {
-    grid-template-columns: 1fr 1fr !important;
-  }
-
-  /* Admin KPI grid */
-  .admin-kpi-grid {
-    grid-template-columns: 1fr 1fr !important;
-  }
-
-  /* Admin subnav */
-  .admin-subnav {
-    border-radius: 0.875rem;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    padding: 0.35rem;
-  }
-  .admin-subnav-btn,
-  .admin-export-btn {
-    font-size: 0.72rem;
-    padding: 0.5rem 0.6rem;
-    min-height: 40px;
-    flex: 1 1 auto;
-    justify-content: center;
-  }
-
-  /* Action description buttons */
-  .neon-btn,
-  .eco-btn-primary {
-    padding: 0.75rem 1.25rem;
-    font-size: 0.875rem;
-  }
-
-  /* Quiz */
-  .quiz-options.grid-2,
-  .quiz-options.grid-3 {
-    grid-template-columns: 1fr;
-  }
-  .quiz-tips-grid {
-    grid-template-columns: 1fr;
-  }
-  .quiz-question { font-size: 1.1rem; }
-
-  /* ML tooltip — position left on small screens */
+  .ml-grid-3, .ml-grid-2 { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 480px) {
   .ml-tooltip {
     left: 0;
+    right: auto;
     transform: translateX(0) translateY(4px);
     width: min(200px, 80vw);
   }
@@ -355,184 +453,106 @@ body {
   .ml-tooltip-wrap:focus-within .ml-tooltip {
     transform: translateX(0) translateY(0);
   }
-  .ml-tooltip::after {
-    left: 1.5rem;
-    transform: none;
-  }
+  .ml-tooltip::after { left: 1.5rem; transform: none; }
 }
 
-/* ── 7. Extra small (@max 480px) ────────────────────────────── */
-@media (max-width: 480px) {
-  body { font-size: 13.5px; }
-
-  #app {
-    padding: 0.5rem 0.375rem 4.5rem;
-  }
-
-  /* Header tight */
-  .header-inner {
-    padding: 0.4rem 0.5rem;
-  }
-  #welcome-message {
-    display: none; /* Скрываем приветствие на очень узких — освобождаем место */
-  }
-
-  /* Glass card */
-  .glass-card {
-    padding: 0.75rem !important;
-    border-radius: 0.875rem !important;
-  }
-
-  /* Auth card */
-  #auth-view {
-    padding: 1.25rem 0.875rem;
-    border-radius: 1rem;
-    width: calc(100% - 0.5rem) !important;
-  }
-
-  /* Big stat value */
-  .stat-value { font-size: 1.75rem; }
-  .stat-unit { font-size: 0.875rem; }
-
-  /* Profile stats → 1 column */
-  .profile-stats-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Admin KPI → 1 column */
-  .admin-kpi-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .admin-kpi-val { font-size: 1.25rem; }
-
-  /* Profile avatar small */
-  .profile-avatar {
-    width: 56px;
-    height: 56px;
-    font-size: 1.25rem;
-  }
-  .profile-stat-num { font-size: 1.2rem; }
-
-  /* Tab buttons wrap */
-  .tab-button {
-    flex: 1 1 calc(50% - 0.2rem);
-    max-width: calc(50% - 0.2rem);
-  }
-
-  /* Sections */
-  .section-title-text { font-size: 0.9rem !important; }
-  .section-icon { width: 30px; height: 30px; }
-
-  /* Decorative elements hidden */
-  .page-decor { display: none; }
-  #ambient-grid { opacity: 0.15; background-size: 28px 28px; }
-  .floating-leaf { opacity: 0.18; }
-
-  /* Inline grids with hard-coded 1fr 1fr → 1fr */
-  /* (covered via !important below) */
+/* ── 19. Quiz ────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .quiz-options.grid-2,
+  .quiz-options.grid-3 { grid-template-columns: 1fr !important; }
+  .quiz-tips-grid { grid-template-columns: 1fr !important; }
+  .quiz-question { font-size: 1.1rem; }
 }
 
-/* ── 8. Dashboard view container ────────────────────────────── */
-@media (max-width: 900px) {
-  #dashboard-view {
-    width: min(100%, calc(100vw - 1rem)) !important;
-    max-width: unset !important;
-  }
-}
-
-/* ── 9. Report tab — inline flex wraps ──────────────────────── */
-@media (max-width: 640px) {
-  /* Report stats grid: 2 KPI cards side by side → full width */
-  #tab-report .stat-card {
-    min-width: unset;
-    flex: 1 1 100%;
-  }
-  /* Дата фильтр */
-  #tab-report .filter-bar {
-    flex-direction: column;
-  }
-
-  /* Таблица записей */
-  .record-item {
-    padding: 0.75rem 0.75rem;
-    gap: 0.625rem;
-  }
-  .record-action-name { font-size: 0.85rem; }
-  .record-meta { font-size: 0.72rem; }
-  .record-value { font-size: 0.875rem; }
-}
-
-/* ── 10. Inline flex containers that hold 2 cards side-by-side ─ */
-/* These are set via style="" in HTML — we override on mobile */
-@media (max-width: 560px) {
-  /* Report: flex row wrap with min-width:200px items → stack */
-  div[style*="flex-wrap:wrap"] > div[style*="min-width:200px"],
-  div[style*="flex-wrap: wrap"] > div[style*="min-width: 200px"] {
-    flex: 1 1 100% !important;
-    max-width: 100% !important;
-    min-width: unset !important;
-  }
-
-  /* Grid 1fr 1fr → 1fr */
-  div[style*="grid-template-columns:1fr 1fr"],
-  div[style*="grid-template-columns: 1fr 1fr"] {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Grid repeat auto-fill min 185px → 1fr */
-  div[style*="minmax(185px,1fr)"],
-  div[style*="minmax(185px, 1fr)"] {
-    grid-template-columns: 1fr 1fr !important;
-  }
-}
-
-@media (max-width: 400px) {
-  div[style*="minmax(185px,1fr)"],
-  div[style*="minmax(185px, 1fr)"] {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* ── 11. Modal ───────────────────────────────────────────────── */
-@media (max-width: 480px) {
+/* ── 20. Modal ───────────────────────────────────────────────── */
+@media (max-width: 520px) {
   .modal-box {
-    width: calc(100vw - 1.5rem) !important;
+    width: calc(100vw - 1.25rem) !important;
     max-width: unset !important;
     padding: 1.25rem !important;
     border-radius: 1.25rem !important;
-    margin: auto;
   }
 }
 
-/* ── 12. Toast (message-box) ────────────────────────────────── */
-@media (max-width: 480px) {
+/* ── 21. Toast ───────────────────────────────────────────────── */
+@media (max-width: 520px) {
   #message-box {
-    right: 0.75rem;
-    left: 0.75rem;
-    top: 0.75rem;
+    left: 0.625rem;
+    right: 0.625rem;
+    top: 0.625rem;
     min-width: unset;
     max-width: unset;
-    width: calc(100vw - 1.5rem);
+    width: auto;
     font-size: 0.8125rem;
   }
 }
 
-/* ── 13. Methodology page ───────────────────────────────────── */
+/* ── 22. Rating table — горизонтальный скролл ────────────────── */
 @media (max-width: 640px) {
-  .method-formula {
-    font-size: 0.875rem;
-    padding: 1rem;
+  #tab-rating .glass-card,
+  #tab-rating > div {
     overflow-x: auto;
-    word-break: break-word;
+    -webkit-overflow-scrolling: touch;
   }
-  .method-example-card {
-    padding: 0.875rem 0.75rem;
+  #tab-rating table {
+    min-width: 340px;
+    font-size: 0.8rem;
+  }
+  #tab-rating th,
+  #tab-rating td {
+    padding: 0.45rem 0.5rem;
+    white-space: nowrap;
   }
 }
 
-/* ── 14. Fix profile layout col at 900px ────────────────────── */
+/* ── 23. Methodology ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .method-formula {
+    font-size: 0.8rem;
+    padding: 0.875rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .method-example-card { padding: 0.875rem 0.75rem; }
+}
+
+/* ── 24. Custom select dropdown ──────────────────────────────── */
+@media (max-width: 640px) {
+  .cs-panel { max-height: 220px; }
+}
+
+/* ── 25. Inputs touch target ─────────────────────────────────── */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="date"],
+  select,
+  textarea,
+  .cs-trigger {
+    min-height: 44px;
+  }
+  .neon-btn-small, .eco-btn-sm { min-height: 40px; }
+  #logout-button { min-height: 38px; }
+  button { touch-action: manipulation; }
+}
+
+/* ── 26. Blobs — уменьшаем на мобиле (GPU memory) ────────────── */
+@media (max-width: 640px) {
+  .blob { filter: blur(65px) !important; opacity: 0.4 !important; }
+  .blob-1 { width: 300px !important; height: 260px !important; }
+  .blob-2 { width: 240px !important; height: 200px !important; }
+  .blob-3 { width: 180px !important; height: 160px !important; }
+  .floating-leaf { opacity: 0.2; }
+}
+@media (max-width: 480px) {
+  .page-decor { display: none !important; }
+  #ambient-grid { opacity: 0.12 !important; background-size: 28px 28px !important; }
+}
+
+/* ── 27. Profile tab — принудительная колонка ────────────────── */
 @media (max-width: 900px) {
-  /* Profile tab flex column */
   #tab-profile {
     flex-direction: column !important;
   }
@@ -541,242 +561,37 @@ body {
   }
 }
 
-/* ── 15. Donut/chart canvas max width ───────────────────────── */
+/* ── 28. Profile 2FA ─────────────────────────────────────────── */
 @media (max-width: 640px) {
-  #contribution-chart {
-    max-width: 280px;
-    width: 100% !important;
-    display: block;
-    margin-inline: auto;
+  .profile-2fa-card { padding: 1rem !important; }
+  .profile-2fa-method { flex-wrap: wrap; gap: 0.5rem; }
+}
+
+/* ── 29. Кнопки — основные ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .neon-btn, .eco-btn-primary {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
   }
 }
 
-/* ── 16. Admin panel ────────────────────────────────────────── */
-@media (max-width: 640px) {
-  .admin-kpi-card {
-    padding: 0.875rem 0.75rem;
-  }
-  .admin-kpi-val { font-size: 1.35rem; }
-  .admin-kpi-label { font-size: 0.68rem; }
-  .admin-kpi-icon { width: 36px; height: 36px; }
-
-  .admin-form-row {
-    flex-direction: column;
-    padding: 0.875rem;
-    gap: 0.625rem;
-  }
-
-  .admin-row {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.75rem 0.625rem;
-  }
-}
-
-/* ── 17. Scrollable tabs don't create horizontal scroll ────── */
-@media (max-width: 900px) {
-  .tabs-wrapper {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .tabs-wrapper::-webkit-scrollbar { display: none; }
-}
-
-/* ── 18. Logout button minimum touch target ─────────────────── */
-#logout-button {
-  min-height: 36px;
-  touch-action: manipulation;
-}
-
-/* ── 19. All interactive elements: 44px touch area ─────────── */
+/* ── 30. Activity row fix ────────────────────────────────────── */
 @media (max-width: 768px) {
-  .neon-btn-small,
-  .eco-btn-sm,
-  button.neon-btn-small,
-  button.eco-btn-sm {
-    min-height: 40px;
-    padding: 0.5rem 1rem;
+  .activity-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 0.6rem;
+    align-items: center;
   }
-
-  input[type="text"],
-  input[type="password"],
-  input[type="email"],
-  input[type="number"],
-  input[type="date"],
-  select,
-  textarea {
-    min-height: 44px;
+  .activity-cat, .activity-co2, .activity-date {
+    margin-left: 1.35rem;
   }
-
-  .cs-trigger {
-    min-height: 44px;
-  }
+  .activity-action { white-space: normal; }
 }
 
-/* ── 20. Quantity row: input + unit inline ──────────────────── */
-@media (max-width: 480px) {
-  /* quantity + unit label row stays horizontal */
-  #quantity {
-    font-size: 1rem;
-  }
-}
-
-/* ── 21. Tab-profile — 2-col security section → 1 col ───────── */
-@media (max-width: 640px) {
-  #tab-profile .glass-card:last-child > div[style*="grid-template-columns:1fr 1fr"],
-  #tab-profile .glass-card:last-child > div[style*="grid-template-columns: 1fr 1fr"] {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* ── 22. Ambient background blobs — scale down on mobile ─────── */
-@media (max-width: 640px) {
-  .blob {
-    filter: blur(65px);
-    opacity: 0.4;
-  }
-  .blob-1 { width: 320px; height: 280px; }
-  .blob-2 { width: 260px; height: 220px; }
-  .blob-3 { width: 200px; height: 180px; }
-}
-
-/* ── 23. Floating leaves — reduce on mobile ─────────────────── */
-@media (max-width: 480px) {
-  .floating-leaf { opacity: 0.2; }
-}
-
-/* ── 24. Big number flex row in report ──────────────────────── */
-@media (max-width: 640px) {
-  #total-contribution {
-    font-size: 2rem !important;
-  }
-  #tree-equivalent {
-    font-size: 0.85rem !important;
-  }
-}
-
-/* ── 25. Tab content animation — faster on mobile ───────────── */
-@media (max-width: 640px) {
-  .tab-content {
-    animation-duration: 0.2s;
-  }
-}
-
-/* ── 26. Prevent any element from causing horizontal scroll ─── */
-#bg-blobs,
-#ambient-grid,
-.page-decor,
-.ambient-orb {
-  max-width: 100vw;
-  overflow: hidden;
-}
-
-/* ── 27. Profile 2FA section ────────────────────────────────── */
-@media (max-width: 640px) {
-  .profile-2fa-card {
-    padding: 0.875rem !important;
-  }
-  .profile-2fa-method {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-}
-
-/* ── 28. Quiz progress bar ───────────────────────────────────── */
-@media (max-width: 480px) {
-  #quiz-progress-wrap {
-    padding: 0 0.25rem;
-  }
-  #quiz-dots {
-    gap: 0.25rem;
-  }
-}
-
-/* ── 29. Rating tab table ────────────────────────────────────── */
-@media (max-width: 640px) {
-  #tab-rating .glass-card {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  #tab-rating table {
-    min-width: 320px;
-    font-size: 0.8rem;
-  }
-  #tab-rating th,
-  #tab-rating td {
-    padding: 0.45rem 0.4rem;
-    white-space: nowrap;
-  }
-  #tab-rating td:nth-child(3) {
-    white-space: normal;
-    max-width: 120px;
-  }
-}
-
-/* ── 30. Prevent overflow on custom select dropdown ─────────── */
-@media (max-width: 640px) {
-  .cs-panel {
-    max-height: 220px;
-  }
-}
-
-/* ── 31. ML form grid overflow fix ──────────────────────────── */
-@media (max-width: 480px) {
-  .ml-unit {
-    right: 0.375rem;
-    font-size: 0.65rem;
-  }
-  .ml-input-wrap input,
-  .ml-input-wrap select {
-    padding-right: 2.5rem;
-  }
-}
-
-/* ── 32. Profile role badge / session info wrap ──────────────── */
-@media (max-width: 480px) {
-  #profile-role-badge,
-  #profile-session-info {
-    font-size: 0.72rem;
-    max-width: 100%;
-    word-break: break-word;
-  }
-}
-
-/* ── 33. Record form action name text overflow ───────────────── */
-@media (max-width: 480px) {
-  .record-action-name {
-    font-size: 0.8rem;
-    white-space: normal;
-    word-break: break-word;
-  }
-}
-
-/* ── 34. Methods grid inline styles override ─────────────────── */
-@media (max-width: 640px) {
-  div[style*="display:grid"][style*="auto-fill"] {
-    grid-template-columns: 1fr 1fr !important;
-  }
-}
-@media (max-width: 380px) {
-  div[style*="display:grid"][style*="auto-fill"] {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* ── 35. Ensure tab wrapper width doesn't exceed viewport ───── */
-.tabs-wrapper {
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-/* ── 36. Bottom safe area for mobile browsers ────────────────── */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  #app {
-    padding-bottom: calc(3rem + env(safe-area-inset-bottom));
-  }
-  @media (max-width: 640px) {
-    #app {
-      padding-bottom: calc(4rem + env(safe-area-inset-bottom));
-    }
-  }
+/* ── 31. Scroll-hint JS support ──────────────────────────────── */
+/* Когда tabs прокручены до конца, JS добавляет класс — hint скрывается */
+.tabs-wrapper.at-end ~ .tabs-scroll-hint,
+.tabs-wrapper.no-scroll ~ .tabs-scroll-hint {
+  display: none !important;
 }
